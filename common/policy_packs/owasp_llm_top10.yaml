@@ -1,0 +1,37 @@
+# Illustrative OWASP LLM Top 10 mappings. Validate with security engineering partners before production.
+name: "OWASP LLM Top 10 (Illustrative)"
+version: "2024-03-01"
+description: "Security mitigations focused on prompt injection, data exposure, and monitoring."
+controls:
+  - id: OWASP-LLM01-LOG
+    title: "Prompt injection test coverage"
+    description: "Execute adversarial prompt suites covering jailbreak, data exfiltration, and tool abuse."
+    authority: "OWASP LLM Top 10"
+    clause: "LLM01 (illustrative)"
+    evidence: "Security test report with blocked payload catalog."
+    tags: [security, prompt_injection]
+    mappings:
+      mitre_atlas: ["TA0007"]
+    when:
+      modifiers: ["Cyber", "Disinformation"]
+      tier: ["Medium", "High", "Critical"]
+  - id: OWASP-LLM04-01
+    title: "Sensitive data guardrails"
+    description: "Implement filters to redact or block PII and regulated data types before model responses."
+    authority: "OWASP LLM Top 10"
+    clause: "LLM04 (illustrative)"
+    evidence: "Filter configuration with testing evidence and owner approvals."
+    tags: [data_protection, guardrails]
+    when:
+      contains_pii: true
+      tier: ["Medium", "High", "Critical"]
+  - id: OWASP-LLM08-02
+    title: "Abuse monitoring"
+    description: "Instrument analytics to detect anomalous usage patterns that could indicate misuse."
+    authority: "OWASP LLM Top 10"
+    clause: "LLM08 (illustrative)"
+    evidence: "Monitoring alerts, thresholds, and incident response linkage."
+    tags: [monitoring, abuse_detection]
+    when:
+      customer_facing: true
+      tier: ["High", "Critical"]

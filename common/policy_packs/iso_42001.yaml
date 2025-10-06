@@ -1,0 +1,34 @@
+# Illustrative ISO/IEC 42001:2023 controls. Align with certified interpretations before relying on them.
+name: "ISO/IEC 42001 (Illustrative)"
+version: "2024-01-10"
+description: "Sample management system controls emphasizing accountability and monitoring."
+controls:
+  - id: ISO-ORG-02
+    title: "Management review cadence"
+    description: "Establish quarterly leadership reviews covering AI risk metrics, incidents, and improvement plans."
+    authority: "ISO/IEC 42001"
+    clause: "5.3 (illustrative)"
+    evidence: "Review meeting minutes, attendee list, and action trackers."
+    tags: [management_system, oversight]
+    when:
+      tier: ["Medium", "High", "Critical"]
+  - id: ISO-OPS-07
+    title: "Operational monitoring"
+    description: "Implement logging for model inputs, outputs, and overrides to support audit readiness."
+    authority: "ISO/IEC 42001"
+    clause: "8.2.3 (illustrative)"
+    evidence: "Monitoring dashboard with retention policy and alert routing."
+    tags: [logging, audit]
+    when:
+      contains_pii: true
+      customer_facing: true
+  - id: ISO-RISK-04
+    title: "Corrective action tracking"
+    description: "Track remediation actions for identified AI risks with owners and target completion dates."
+    authority: "ISO/IEC 42001"
+    clause: "10.2 (illustrative)"
+    evidence: "Action tracker referencing incident IDs and closure evidence."
+    tags: [risk_management, remediation]
+    when:
+      tier: ["High", "Critical"]
+      modifiers: ["Cyber", "Bio", "Children"]

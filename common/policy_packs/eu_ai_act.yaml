@@ -1,0 +1,35 @@
+# Illustrative mapping only. Confirm obligations with legal counsel before operational use.
+name: "EU AI Act (Illustrative)"
+version: "2024-02-15"
+description: "Draft obligations mirroring high-risk system articles for interview demos."
+controls:
+  - id: EU-HR-01
+    title: "High-risk registration"
+    description: "Record the system in an internal EU AI Act high-risk inventory with conformity evidence."
+    authority: "EU AI Act"
+    clause: "Title III, Chapter 2 (illustrative)"
+    evidence: "Inventory entry with conformity assessment references and documentation URLs."
+    tags: [compliance, inventory]
+    when:
+      tier: ["High", "Critical"]
+      sector: ["Healthcare", "Finance", "Critical Infrastructure", "Children"]
+  - id: EU-TRANSP-03
+    title: "Transparency notice"
+    description: "Provide users with a clear notice that they are interacting with an AI system and how decisions are overseen."
+    authority: "EU AI Act"
+    clause: "Article 52 (illustrative)"
+    evidence: "Published customer-facing notice with review cadence."
+    tags: [transparency, communications]
+    when:
+      customer_facing: true
+      tier: ["Medium", "High", "Critical"]
+  - id: EU-GOV-05
+    title: "Human oversight design"
+    description: "Ensure trained reviewers can intervene and override automated decisions in high-stakes contexts."
+    authority: "EU AI Act"
+    clause: "Article 14 (illustrative)"
+    evidence: "Runbook describing escalation paths, SLAs, and tooling access."
+    tags: [human_in_the_loop, governance]
+    when:
+      high_stakes: true
+      tier: ["High", "Critical"]

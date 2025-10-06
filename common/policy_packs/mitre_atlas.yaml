@@ -1,0 +1,35 @@
+# Illustrative MITRE ATLAS technique references. Consult threat intel teams to validate mappings.
+name: "MITRE ATLAS (Illustrative)"
+version: "2024-02-01"
+description: "Threat-informed mitigations connecting misuse techniques to safeguards."
+controls:
+  - id: ATLAS-T0008-01
+    title: "Model access review"
+    description: "Review privileged access to model endpoints and revoke unused tokens monthly."
+    authority: "MITRE ATLAS"
+    clause: "T0008 (illustrative)"
+    evidence: "Access review attestation with approvals and revocation logs."
+    tags: [access_control, monitoring]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      modifiers: ["Cyber"]
+  - id: ATLAS-T0010-02
+    title: "Incident simulation"
+    description: "Simulate misuse scenarios (prompt leakage, tool abuse) to validate response plans."
+    authority: "MITRE ATLAS"
+    clause: "T0010 (illustrative)"
+    evidence: "Tabletop report referencing detection gaps and remediation owners."
+    tags: [resilience, tabletop]
+    when:
+      tier: ["High", "Critical"]
+      modifiers: ["Cyber", "Disinformation"]
+  - id: ATLAS-T0004-03
+    title: "Supply chain attestation"
+    description: "Collect security attestations from upstream model providers and evaluate anomalies."
+    authority: "MITRE ATLAS"
+    clause: "T0004 (illustrative)"
+    evidence: "Vendor attestation package with review notes."
+    tags: [supply_chain, due_diligence]
+    when:
+      autonomy_at_least: 2
+      tier: ["High", "Critical"]
