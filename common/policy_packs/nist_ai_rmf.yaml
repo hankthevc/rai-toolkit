@@ -1,0 +1,39 @@
+# Illustrative mapping for interview-ready demos. Validate clauses with your governance and legal teams.
+name: "NIST AI RMF (Illustrative)"
+version: "2024-01-01"
+description: "Sample safeguards derived from NIST AI RMF functions for frontier AI oversight."
+controls:
+  - id: NIST-GOV-01
+    title: "Document accountable owner"
+    description: "Assign a named executive accountable for the AI system's governance posture."
+    authority: "NIST AI RMF"
+    clause: "Govern 1.1 (illustrative)"
+    evidence: "Risk charter naming accountable executive and approval date."
+    tags: [governance, accountability]
+    mappings:
+      mitre_atlas: ["TA0001"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+  - id: NIST-MAP-02
+    title: "Scenario registration"
+    description: "Capture mission, stakeholders, and constraints in a structured system of record."
+    authority: "NIST AI RMF"
+    clause: "Map 2.3 (illustrative)"
+    evidence: "Registration ticket linking to model cards and system diagrams."
+    tags: [transparency, inventory]
+    when:
+      customer_facing: true
+      sector: ["Healthcare", "Finance", "Critical Infrastructure"]
+  - id: NIST-MEASURE-05
+    title: "Adversarial robustness testing"
+    description: "Run documented adversarial test suites targeting prompt injection and insecure outputs."
+    authority: "NIST AI RMF"
+    clause: "Measure 4.1 (illustrative)"
+    evidence: "Test reports with coverage metrics and mitigation owners."
+    tags: [security, testing]
+    mappings:
+      owasp_llm_top10: ["LLM01", "LLM05"]
+      mitre_atlas: ["TA0007"]
+    when:
+      tier: ["High", "Critical"]
+      modifiers: ["Cyber", "Disinformation"]
