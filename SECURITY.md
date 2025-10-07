@@ -5,7 +5,7 @@
 - Security vulnerabilities should be reported privately so fixes can be prepared before public disclosure.
 
 ## Reporting a Vulnerability
-Email security issues to <security@example.com> with the subject line `RAI-Toolkit Vulnerability Report`.
+Email security issues to <hankthevc@users.noreply.github.com> with the subject line `RAI-Toolkit Vulnerability Report`.
 
 Please include:
 - Description of the issue and potential impact

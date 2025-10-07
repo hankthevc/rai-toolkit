@@ -10,8 +10,8 @@ __pycache__/
 .vscode/
 .idea/
 
-# Streamlit
-.streamlit/
+# Generated data
+data/
 
 # MacOS
 .DS_Store
