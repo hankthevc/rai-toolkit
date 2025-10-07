@@ -69,7 +69,27 @@ def main():
         contains_pii = st.checkbox("Processes personal or sensitive data (PII)")
         customer_facing = st.checkbox("Customer-facing or external exposure")
         high_stakes = st.checkbox("High-stakes outcomes (safety, rights, finances)")
-        autonomy_level = st.slider("Autonomy level", min_value=0, max_value=3, value=0)
+        
+        st.markdown("**Autonomy Level**")
+        autonomy_level = st.slider(
+            "Select autonomy level",
+            min_value=0,
+            max_value=3,
+            value=0,
+            help="How much automated decision-making without human review?",
+        )
+        
+        with st.expander("ℹ️ What do autonomy levels mean?"):
+            st.markdown("""
+            - **Level 0 (Suggestion only):** AI provides recommendations but humans make all final decisions
+              - Example: Code completion tool, writing assistant
+            - **Level 1 (Human-in-the-loop):** AI acts but humans review and approve before impact
+              - Example: Resume screening with recruiter review, content moderation queue
+            - **Level 2 (Human oversight):** AI acts autonomously but humans can intervene with defined escalation rules
+              - Example: Chatbot that escalates complex questions, fraud detection with manual review threshold
+            - **Level 3 (Full autonomy):** AI makes and executes decisions without human review in normal operation
+              - Example: Automated trading system, autonomous vehicle, real-time content filtering
+            """)
         sector = st.selectbox(
             "Primary sector",
             options=[

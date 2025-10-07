@@ -218,7 +218,8 @@ def test_risk_score_additive_nature():
     # Total: 2 + 2 + 3 + 3 + 1 + 2 + 2 = 15
     assert assessment.score == 15
     assert assessment.tier == "Critical"
-    assert len(assessment.contributing_factors) == 6
+    # 7 factors: PII, customer-facing, high-stakes, autonomy, Cyber, Bio, Healthcare sector
+    assert len(assessment.contributing_factors) == 7
 
 
 def test_determine_risk_tier_thresholds():
