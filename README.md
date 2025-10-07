@@ -1,10 +1,13 @@
 # rai-toolkit
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://rai-toolkit.streamlit.app/)
 ![CI](https://github.com/hankthevc/rai-toolkit/workflows/CI/badge.svg)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 **Key Judgment:** Responsible AI governance-as-code. Risk assessment, safeguards with policy citations, and exportable approval records.
+
+**🚀 [Try the Live Demo](https://rai-toolkit.streamlit.app/)** — Assess AI scenarios and generate decision records in under 2 minutes.
 
 The Frontier AI Risk Assessment Framework (Project 1) demonstrates how policy, security, and engineering teams can run an intake, score risk, and assign safeguards inside a single workflow. Every safeguard is backed by an illustrative policy pack citation so compliance reviewers and threat analysts can trace each decision.
 
@@ -27,9 +30,19 @@ The app launches at `http://localhost:8501`. Enter a scenario, flag contextual r
 python scripts/generate_sample_data.py --count 150
 ```
 
-### Deploy to Streamlit Cloud
+### Live Demo
 
-Deploy your own instance for free in under 5 minutes:
+**🌐 Production deployment:** https://rai-toolkit.streamlit.app/
+
+Try the live app to:
+- Assess AI scenarios with the risk calculator
+- View 15+ triggered safeguards for high-risk scenarios
+- Download Decision Records as markdown files
+- Explore governance analytics with 8+ interactive visualizations
+
+### Deploy Your Own Instance
+
+Fork and deploy your own instance for free in under 5 minutes:
 
 1. Fork this repository to your GitHub account
 2. Visit [streamlit.io/cloud](https://streamlit.io/cloud) and sign up

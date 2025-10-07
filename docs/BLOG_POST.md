@@ -335,7 +335,7 @@ That's the future I'm building toward.
 
 ## Try It Yourself
 
-**Live Demo:** [Deploy to Streamlit Cloud in 5 minutes](https://github.com/hankthevc/rai-toolkit#deploy-to-streamlit-cloud)
+**🚀 Live Demo:** [https://rai-toolkit.streamlit.app/](https://rai-toolkit.streamlit.app/)
 
 **GitHub:** [github.com/hankthevc/rai-toolkit](https://github.com/hankthevc/rai-toolkit)
 
