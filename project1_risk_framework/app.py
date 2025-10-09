@@ -71,6 +71,7 @@ def main():
     st.caption(
         "Governance-as-code prototype. Defensive use only; validate with legal, privacy, and security partners."
     )
+    # Force redeploy marker: v1.0.1
 
     packs = _load_packs()
 
