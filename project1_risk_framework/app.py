@@ -68,12 +68,76 @@ def main():
     )
 
     st.title("Frontier AI Risk Assessment Framework")
+    
+    # Framing panel
+    with st.expander("ℹ️ About This Tool — Read This First", expanded=False):
+        st.markdown("""
+        ### What This Is
+        A **small prototype** to demonstrate my reasoning approach to Responsible AI risk assessment:
+        - How I **triage** AI systems based on impact and context
+        - How I **score** risk using transparent, additive factors
+        - How I **map** scenarios to governance standards (NIST AI RMF, EU AI Act, OWASP, etc.)
+        - How I **produce** concise decision records for stakeholder review
+        
+        ### What This Is NOT
+        - ❌ **Not production software** — Real teams should use internal frameworks, richer data, and secured pipelines
+        - ❌ **Not comprehensive** — This is a demonstration, not an enterprise solution
+        - ❌ **Not legal advice** — Always validate with legal, compliance, and security partners
+        
+        ### Assumptions & Limitations (Non-Exhaustive)
+        - **Simplified scoring:** Weights are illustrative, not empirically validated
+        - **Simulated data:** Policy packs are examples, not official regulatory text
+        - **Placeholder mappings:** Framework citations are illustrative, not authoritative
+        - **No sensitive data stored:** All processing is client-side; AI analysis sends data to OpenAI
+        - **Export for demo only:** Decision records are templates, not binding approvals
+        
+        ### Goal
+        Demonstrate **judgment under ambiguity**, not claim completeness. This shows:
+        - Cross-functional thinking (policy → code → operations)
+        - Structured decision-making under uncertainty
+        - Ability to translate complex regulations into actionable controls
+        
+        Built by [Henry Appel](https://github.com/hankthevc) | Former NSC/ODNI policy advisor | AI security researcher at 2430 Group
+        """)
+    
     st.caption(
         "Governance-as-code prototype. Defensive use only; validate with legal, privacy, and security partners."
     )
-    # Force redeploy marker: v1.0.1
+    # Force redeploy marker: v1.0.2
 
     packs = _load_packs()
+    
+    # Sidebar: Data Handling & Privacy Information
+    with st.sidebar:
+        st.header("🔒 Data Handling")
+        st.markdown("""
+        **Your data privacy:**
+        - ✅ **No data stored:** Assessments are not saved to any database
+        - ✅ **Local processing:** Risk calculations run entirely in your browser session
+        - ⚠️ **AI analysis:** If you use AI parsing, your scenario description is sent to OpenAI's API
+        - 🔑 **API keys:** Stored only in browser session memory (not persisted)
+        
+        **What happens when you:**
+        - **Fill the form:** Data stays in your browser
+        - **Click "Analyze with AI":** Scenario text sent to OpenAI (subject to their terms)
+        - **Submit assessment:** Risk score calculated locally
+        - **Download record:** File generated client-side
+        
+        **Recommendations:**
+        - Don't paste actual PII/PHI into scenario descriptions
+        - Use anonymized examples instead
+        - For production use, deploy locally or review vendor terms
+        
+        [Privacy Policy](https://streamlit.io/privacy-policy) | [Terms of Service](https://streamlit.io/terms-of-service)
+        """)
+        
+        st.markdown("---")
+        st.markdown("**📚 About This Tool**")
+        st.markdown("""
+        Built by [Henry Appel](https://github.com/hankthevc) to demonstrate governance-as-code patterns for AI risk assessment.
+        
+        [GitHub](https://github.com/hankthevc/rai-toolkit) | [Issues](https://github.com/hankthevc/rai-toolkit/issues)
+        """)
 
     # Initialize session state for AI-parsed values
     if "ai_analysis" not in st.session_state:
@@ -533,7 +597,37 @@ def main():
             st.markdown(f"{i}. {safeguard}")
         st.caption("*These recommendations are derived from AI analysis of the scenario against established governance frameworks. Review the policy pack controls below for formal requirements.*")
 
+    # Standards tags
+    st.markdown("---")
+    st.markdown("**📚 Governance Standards Applied:**")
+    
+    # Collect unique authorities from triggered controls
+    authorities = set()
+    for control in controls:
+        authorities.add(control.authority)
+    
+    # Display as badges/tags
+    if authorities:
+        # Create color-coded badges for different standards
+        standard_colors = {
+            "NIST AI RMF": "#0066cc",
+            "EU AI Act": "#003399",
+            "ISO/IEC 42001": "#006600",
+            "OWASP LLM Top 10": "#cc0000",
+            "MITRE ATLAS": "#990000",
+            "US OMB M-24-10": "#4d4d4d"
+        }
+        
+        badge_html = " ".join([
+            f'<span style="background-color: {standard_colors.get(auth, "#666666")}; color: white; padding: 4px 12px; border-radius: 12px; margin: 4px; display: inline-block; font-size: 0.85em;">{auth}</span>'
+            for auth in sorted(authorities)
+        ])
+        st.markdown(badge_html, unsafe_allow_html=True)
+    else:
+        st.caption("No specific standards triggered for this risk profile.")
+    
     # Safeguards surface authority + clause so reviewers can trace each recommendation.
+    st.markdown("---")
     st.subheader("Required Safeguards from Policy Packs")
     st.caption("These safeguards are triggered by the traditional risk engine based on YAML policy packs.")
     if controls:
@@ -576,6 +670,56 @@ def main():
         mime="text/markdown",
         use_container_width=True,
     )
+    
+    # Owners & Next Steps
+    st.markdown("---")
+    st.subheader("👥 Owners & Next Steps")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"**System Owner:** {owner if owner else 'Not specified'}")
+        st.markdown(f"**Approver:** {approver if approver else 'Not specified'}")
+        st.caption("These roles are responsible for implementing and monitoring safeguards")
+    
+    with col2:
+        review_interval_days = 90  # Default from exporters.py
+        st.markdown(f"**Next Review:** {review_interval_days} days from approval")
+        st.markdown(f"**Risk Tier:** {assessment.tier}")
+        st.caption("Higher-risk systems should be reviewed more frequently")
+    
+    st.markdown("**📋 Recommended Next Steps:**")
+    
+    # Generate context-aware next steps
+    next_steps = []
+    
+    if assessment.tier in ["High", "Critical"]:
+        next_steps.append("1. **Immediate:** Schedule review with legal, privacy, and security teams before deployment")
+        next_steps.append("2. **Pre-launch:** Conduct bias/fairness testing across demographic groups")
+        next_steps.append("3. **Pre-launch:** Establish monitoring dashboards for model performance and drift")
+    else:
+        next_steps.append("1. **Pre-launch:** Review safeguards with compliance team")
+        next_steps.append("2. **Pre-launch:** Document baseline performance metrics")
+    
+    if contains_pii:
+        next_steps.append(f"4. **Pre-launch:** Complete Privacy Impact Assessment (PIA) or Data Protection Impact Assessment (DPIA)")
+    
+    if sector in ["Healthcare", "Finance"]:
+        next_steps.append(f"5. **Pre-launch:** Obtain {sector} compliance team sign-off")
+    
+    if uses_foundation_model != "No Third-Party":
+        next_steps.append("6. **Pre-launch:** Review vendor contracts for AI-specific terms (data retention, training prohibitions)")
+    
+    if autonomy_level >= 2:
+        next_steps.append("7. **Post-launch:** Implement human oversight escalation procedures")
+    
+    next_steps.append(f"8. **Post-launch:** Schedule first review in {review_interval_days} days")
+    next_steps.append("9. **Ongoing:** Monitor for model drift, bias, and performance degradation")
+    
+    for step in next_steps:
+        st.markdown(step)
+    
+    st.info("💡 **Tip:** Assign specific owners to each next step and track completion in your project management system")
 
     if use_case:
         st.markdown("---")

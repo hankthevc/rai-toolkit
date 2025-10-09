@@ -48,6 +48,8 @@ python scripts/generate_sample_data.py --count 150
 
 **🌐 Production deployment:** https://rai-toolkit.streamlit.app/
 
+> ⏰ **Note:** Streamlit Cloud apps may sleep after inactivity. If you see a "waking up" message, wait 30-60 seconds for the app to start. Once running, it stays active for your session.
+
 Try the live app to:
 - **Use AI to auto-fill** risk assessments from plain-language descriptions (NEW)
 - Assess AI scenarios with the risk calculator
@@ -125,6 +127,34 @@ See [`docs/case_studies/`](docs/case_studies/) for detailed analyses of three re
 1. **[Healthcare Patient Support Chatbot](docs/case_studies/01_healthcare_chatbot.md)** — Critical tier (score: 12) with 15 triggered safeguards spanning PHI protection, adversarial testing, and human oversight
 2. **[Internal Code Copilot](docs/case_studies/02_internal_code_copilot.md)** — Low tier (score: 0) demonstrating appropriate de-escalation for internal, human-reviewed tooling
 3. **[AI-Powered Hiring Platform](docs/case_studies/03_hiring_assessment_tool.md)** — Critical tier (score: 9) showing employment AI's unique risk profile under EU AI Act and identifying framework enhancement opportunities
+
+**📄 [Sample Decision Record](docs/samples/sample_decision_record.md)** — See a complete exported decision record for the healthcare chatbot scenario, including stop-ship triggers, pre-launch requirements, and approval signatures.
+
+## Testing & Quality Assurance
+
+![Tests Passing](https://img.shields.io/badge/tests-63%20passed-success)
+![Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen)
+
+**Continuous Integration:** Every push to `main` triggers GitHub Actions CI that runs:
+- **63 unit tests** across risk scoring, policy loading, YAML validation, AI parsing, and export functionality
+- **Code coverage analysis** (88% coverage across `common/` utilities)
+- **Linting** with Ruff and Black formatting checks
+
+**Test categories:**
+- `test_risk_engine.py` — 30 tests validating scoring logic, tier thresholds, and all 16 risk factors
+- `test_policy_loader.py` — 13 tests for YAML policy pack loading and conditional matching
+- `test_ai_parser.py` — 7 tests for AI-powered scenario parsing (1 integration test skipped in CI)
+- `test_exporters.py` — 8 tests for decision record generation
+- `test_edge_cases.py` — 6 NEW tests for maximum/minimum risk scenarios, YAML integrity, and export validation
+
+**Running tests locally:**
+```bash
+pytest tests/ -v                      # All tests
+pytest tests/ --cov=common            # With coverage report
+pytest tests/ -k "not integration"    # Skip tests requiring API keys
+```
+
+See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full CI configuration.
 
 ## Framework Crosswalks
 
