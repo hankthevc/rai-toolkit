@@ -29,9 +29,9 @@ streamlit run project1_risk_framework/app.py
 
 The app launches at `http://localhost:8501`. Enter a scenario, flag contextual risk modifiers, and download the generated Decision Record to test the full workflow end-to-end.
 
-**For AI-Powered Analysis:** Set your OpenAI API key to enable intelligent form auto-fill:
+**For AI-Powered Analysis:** The live demo includes built-in AI capabilities. For local development, set your OpenAI API key:
 ```bash
-export OPENAI_API_KEY="sk-..."  # Or enter directly in the app UI
+export OPENAI_API_KEY="sk-..."
 ```
 
 **Writing effective prompts for AI analysis:**

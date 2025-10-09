@@ -17,8 +17,10 @@ The RAI Toolkit is now a **two-way conversation** instead of a one-shot assessme
 
 ## User Experience
 
-### 1. Submit Assessment (As Before)
-User fills out the risk assessment form → Gets AI analysis → Gets traditional risk score + safeguards
+### 1. Submit Assessment (Streamlined)
+User describes their AI use case → AI asks clarifying questions (Interview Mode) → User answers → Gets comprehensive analysis + risk score + safeguards
+
+**Note:** The tool now automatically uses Interview Mode to gather context before providing analysis. No API key input needed for public demo users.
 
 ### 2. **NEW:** Ask Questions (Interactive)
 After submission, a chat interface appears:

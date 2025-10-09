@@ -175,31 +175,36 @@ def main():
     with st.expander("ℹ️ About This Tool — Read This First", expanded=False):
         st.markdown("""
         ### What This Is
-        A **small prototype** to demonstrate my reasoning approach to Responsible AI risk assessment:
-        - How I **triage** AI systems based on impact and context
-        - How I **score** risk using transparent, additive factors
-        - How I **map** scenarios to governance standards (NIST AI RMF, EU AI Act, OWASP, etc.)
-        - How I **produce** concise decision records for stakeholder review
+        A **demonstration prototype** showing one potential approach to AI risk assessment:
+        - **Triage** AI systems based on impact and context
+        - **Score** risk using transparent, additive factors across 16 dimensions
+        - **Map** scenarios to governance standards (NIST AI RMF, EU AI Act, OWASP, etc.)
+        - **Generate** decision records for stakeholder review
         
         ### What This Is NOT
-        - ❌ **Not production software** — Real teams should use internal frameworks, richer data, and secured pipelines
-        - ❌ **Not comprehensive** — This is a demonstration, not an enterprise solution
+        - ❌ **Not production software** — Intended for educational and demonstrative purposes only
+        - ❌ **Not comprehensive** — A sample implementation, not an enterprise solution
         - ❌ **Not legal advice** — Always validate with legal, compliance, and security partners
+        - ❌ **Not authoritative** — Framework citations are illustrative examples only
         
-        ### Assumptions & Limitations (Non-Exhaustive)
-        - **Simplified scoring:** Weights are illustrative, not empirically validated
-        - **Simulated data:** Policy packs are examples, not official regulatory text
-        - **Placeholder mappings:** Framework citations are illustrative, not authoritative
-        - **No sensitive data stored:** All processing is client-side; AI analysis sends data to OpenAI
-        - **Export for demo only:** Decision records are templates, not binding approvals
+        ### Assumptions & Limitations
+        **⚠️ All content should be treated as sample/demonstrative use only**
         
-        ### Goal
-        Demonstrate **judgment under ambiguity**, not claim completeness. This shows:
-        - Cross-functional thinking (policy → code → operations)
-        - Structured decision-making under uncertainty
-        - Ability to translate complex regulations into actionable controls
+        - **Scoring weights:** Illustrative, not empirically validated for production use
+        - **Policy packs:** Example YAML files, not official regulatory text
+        - **Framework citations:** Illustrative references, not authoritative legal interpretations
+        - **AI analysis:** Powered by OpenAI API; responses are AI-generated suggestions
+        - **Decision records:** Templates for demonstration, not binding legal documents
+        - **No data storage:** Assessments are session-only and not persisted
         
-        Built by [Henry Appel](https://github.com/hankthevc) | Former NSC/ODNI policy advisor | AI security researcher at 2430 Group
+        ### Recommended Use
+        Use this tool to:
+        - Explore governance-as-code concepts
+        - Learn about AI risk frameworks interactively
+        - Generate discussion materials for team conversations
+        - Understand what factors matter for AI governance
+        
+        **Before production deployment:** Engage legal, privacy, security, and compliance teams to validate all requirements.
         """)
     
     st.caption(
@@ -234,11 +239,11 @@ def main():
         """)
         
         st.markdown("---")
-        st.markdown("**📚 About This Tool**")
+        st.markdown("**📚 More Information**")
         st.markdown("""
-        Built by [Henry Appel](https://github.com/hankthevc) to demonstrate governance-as-code patterns for AI risk assessment.
+        This is an open-source demonstration of governance-as-code patterns.
         
-        [GitHub](https://github.com/hankthevc/rai-toolkit) | [Issues](https://github.com/hankthevc/rai-toolkit/issues)
+        [GitHub Repository](https://github.com/hankthevc/rai-toolkit) | [Report Issues](https://github.com/hankthevc/rai-toolkit/issues) | [Documentation](https://github.com/hankthevc/rai-toolkit/tree/main/docs)
         """)
 
     # Initialize session state for AI-parsed values
@@ -314,58 +319,30 @@ def main():
         **The AI will analyze your description and suggest risk modifiers. You'll review its reasoning before accepting.**
         """)
     
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        quick_description = st.text_area(
-            "📝 Describe your AI use case (see tips above for what to include)",
-            placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
-            height=140,
-            key="quick_desc",
-            help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
-        )
-    with col2:
-        st.write("")  # Spacing
-        st.write("")  # Spacing
-        api_key_input = st.text_input(
-            "OpenAI API Key (optional)",
-            type="password",
-            help="Leave blank to use OPENAI_API_KEY environment variable",
-            key="api_key_input"
-        )
-        
-        col_a, col_b = st.columns(2)
-        with col_a:
-            interview_button = st.button("💬 Interview Mode (Recommended)", use_container_width=True, type="primary", 
-                                        help="AI asks clarifying questions for comprehensive analysis")
-        with col_b:
-            analyze_button = st.button("⚡ Quick Analysis", use_container_width=True,
-                                      help="One-shot analysis without follow-up questions")
+    quick_description = st.text_area(
+        "📝 Describe your AI use case (see tips above for what to include)",
+        placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
+        height=140,
+        key="quick_desc",
+        help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
+    )
+    
+    # Single analyze button - automatically uses interview mode
+    analyze_button = st.button("🔍 Analyze AI Use Case", use_container_width=True, type="primary", 
+                               help="AI will ask clarifying questions for comprehensive risk assessment")
 
-    # Handle Interview Mode (NEW - preferred flow)
-    if interview_button and quick_description:
+    # Handle AI Analysis (automatically uses interview mode)
+    if analyze_button and quick_description:
         with st.spinner("Analyzing your description and preparing questions..."):
             try:
-                import os
-                # Get API key (same logic as analysis)
+                # Get API key from Streamlit Cloud secrets
                 api_key = None
-                if api_key_input and api_key_input.strip():
-                    api_key = api_key_input.strip()
-                    st.info("Using API key from input field...")
-                if not api_key:
-                    try:
-                        api_key = st.secrets.get("OPENAI_API_KEY")
-                        if api_key:
-                            st.info("Using API key from Streamlit Cloud secrets...")
-                    except:
-                        pass
-                if not api_key:
-                    api_key = os.getenv("OPENAI_API_KEY")
-                    if api_key:
-                        st.info("Using API key from environment variable...")
+                try:
+                    api_key = st.secrets.get("OPENAI_API_KEY")
+                except:
+                    st.error("⚠️ OpenAI API key not configured. Please contact the administrator.")
                 
-                if not api_key:
-                    st.error("⚠️ OpenAI API key required for interview mode.")
-                else:
+                if api_key:
                     # Conduct initial interview
                     interview_response = conduct_interview(
                         initial_description=quick_description,
@@ -396,7 +373,7 @@ def main():
             except ImportError:
                 st.error("⚠️ OpenAI package not installed. Run: `pip install openai`")
             except Exception as e:
-                st.error(f"❌ Interview error: {str(e)}")
+                st.error(f"❌ Analysis error: {str(e)}")
                 import traceback
                 st.code(traceback.format_exc())
     
@@ -433,18 +410,12 @@ def main():
                 # Add to history
                 st.session_state.interview_history.extend(answers)
                 
-                # Get API key again
-                import os
+                # Get API key from Streamlit Cloud secrets
                 api_key = None
-                if api_key_input and api_key_input.strip():
-                    api_key = api_key_input.strip()
-                if not api_key:
-                    try:
-                        api_key = st.secrets.get("OPENAI_API_KEY")
-                    except:
-                        pass
-                if not api_key:
-                    api_key = os.getenv("OPENAI_API_KEY")
+                try:
+                    api_key = st.secrets.get("OPENAI_API_KEY")
+                except:
+                    pass
                 
                 # Continue interview or proceed to analysis
                 with st.spinner("Processing your answers..."):
@@ -474,52 +445,6 @@ def main():
                         st.rerun()
             else:
                 st.warning("⚠️ Please answer all questions to continue the assessment.")
-    
-    # Handle Quick Analysis (original one-shot flow)
-    if analyze_button and quick_description:
-        with st.spinner("Analyzing scenario with AI..."):
-            try:
-                import os
-                # Check multiple sources for API key: input field, Streamlit secrets, env var
-                # Priority: 1) User input field, 2) Streamlit secrets, 3) Environment variable
-                api_key = None
-                
-                # Check user input field first (strip whitespace)
-                if api_key_input and api_key_input.strip():
-                    api_key = api_key_input.strip()
-                    st.info("Using API key from input field...")
-                
-                # If no user input, check Streamlit secrets
-                if not api_key:
-                    try:
-                        api_key = st.secrets.get("OPENAI_API_KEY")
-                        if api_key:
-                            st.info("Using API key from Streamlit Cloud secrets...")
-                    except (KeyError, FileNotFoundError, AttributeError):
-                        pass
-                
-                # If still no key, check environment variable
-                if not api_key:
-                    api_key = os.getenv("OPENAI_API_KEY")
-                    if api_key:
-                        st.info("Using API key from environment variable...")
-                
-                if not api_key:
-                    st.error("⚠️ OpenAI API key required. Please either:\n- Enter it in the field above, OR\n- Set it in Streamlit Cloud Settings → Secrets as `OPENAI_API_KEY`")
-                else:
-                    analysis = parse_scenario_with_ai(quick_description, api_key=api_key)
-                    if analysis:
-                        st.session_state.ai_analysis = analysis
-                        st.session_state.show_ai_preview = True
-                        st.success("✅ Analysis complete! Review suggestions below, then use them to fill the form.")
-                    else:
-                        st.error("❌ Analysis failed. Please check your API key and try again.")
-            except ImportError:
-                st.error("⚠️ OpenAI package not installed. Run: `pip install openai`")
-            except Exception as e:
-                st.error(f"❌ Analysis error: {str(e)}")
-                import traceback
-                st.code(traceback.format_exc())
 
     # Display AI analysis preview
     if st.session_state.show_ai_preview and st.session_state.ai_analysis:
@@ -1010,18 +935,12 @@ def main():
             # Get AI response
             with st.spinner("Thinking..."):
                 try:
-                    import os
-                    # Use same API key source as main AI analysis
+                    # Get API key from Streamlit Cloud secrets
                     api_key = None
-                    if api_key_input and api_key_input.strip():
-                        api_key = api_key_input.strip()
-                    if not api_key:
-                        try:
-                            api_key = st.secrets.get("OPENAI_API_KEY")
-                        except:
-                            pass
-                    if not api_key:
-                        api_key = os.getenv("OPENAI_API_KEY")
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                    except:
+                        pass
                     
                     if api_key:
                         response = _get_governance_answer(
@@ -1036,7 +955,7 @@ def main():
                     else:
                         st.session_state.governance_chat.append({
                             "role": "assistant",
-                            "content": "⚠️ OpenAI API key required for Q&A. Please enter your API key in the field above or set OPENAI_API_KEY environment variable."
+                            "content": "⚠️ OpenAI API key not configured. Please contact the administrator."
                         })
                 except Exception as e:
                     st.session_state.governance_chat.append({
@@ -1054,18 +973,12 @@ def main():
             # Get AI response
             with st.spinner("Thinking..."):
                 try:
-                    import os
-                    # Use same API key source as main AI analysis
+                    # Get API key from Streamlit Cloud secrets
                     api_key = None
-                    if api_key_input and api_key_input.strip():
-                        api_key = api_key_input.strip()
-                    if not api_key:
-                        try:
-                            api_key = st.secrets.get("OPENAI_API_KEY")
-                        except:
-                            pass
-                    if not api_key:
-                        api_key = os.getenv("OPENAI_API_KEY")
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                    except:
+                        pass
                     
                     if api_key:
                         response = _get_governance_answer(
@@ -1080,7 +993,7 @@ def main():
                     else:
                         st.session_state.governance_chat.append({
                             "role": "assistant",
-                            "content": "⚠️ OpenAI API key required for Q&A. Please enter your API key in the field above or set OPENAI_API_KEY environment variable."
+                            "content": "⚠️ OpenAI API key not configured. Please contact the administrator."
                         })
                 except Exception as e:
                     st.session_state.governance_chat.append({
