@@ -187,6 +187,13 @@ def main():
         
         analysis = st.session_state.ai_analysis
         
+        # Defensive check for backward compatibility with old session state
+        if not hasattr(analysis, 'estimated_risk_tier'):
+            st.warning("⚠️ Analysis format outdated. Please re-run the AI analysis.")
+            st.session_state.show_ai_preview = False
+            st.session_state.ai_analysis = None
+            st.rerun()
+        
         # Show AI's risk assessment prominently
         risk_tier_colors = {
             "Low": "🟢",
@@ -445,7 +452,7 @@ def main():
     controls = select_applicable_controls(packs, scenario_context)
 
     # Show comparison if AI analysis was performed
-    if st.session_state.ai_analysis:
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'estimated_risk_tier'):
         st.markdown("---")
         st.subheader("🔬 AI vs. Traditional Risk Assessment Comparison")
         
