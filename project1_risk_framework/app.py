@@ -397,7 +397,7 @@ def main():
                     f"Your answer #{i+1}:",
                     key=f"interview_q_{i}",
                     height=80,
-                    placeholder="Be specific - this affects the risk assessment..."
+                    placeholder="Your answer..."
                 )
                 answers.append({"question": q.question, "answer": answer})
                 st.markdown("---")
@@ -517,13 +517,22 @@ def main():
                 *Scroll down to review the form. You can override any suggested values.*
                 """)
             
-            st.info("⬇️ **Next Step:** Scroll down to review the form (values auto-filled) and submit for the traditional risk engine's assessment.")
+            # Automatically trigger risk assessment from AI analysis
+            st.markdown("---")
+            _render_risk_assessment_from_ai(st.session_state.ai_analysis, quick_description, packs)
+            return
 
+    # If no AI analysis yet, show info message
+    st.info("☝️ Describe your AI use case above and click 'Analyze' to get started.")
     st.markdown("---")
+    _render_about_section()
+    return
 
-    # Main risk assessment form
-    with st.form(key="risk_form"):
-        st.subheader("Scenario Inputs")
+    # REMOVED: Manual form - all assessment now driven by AI interview
+    # Old manual form code removed to streamline UX
+    if False:  # Keeping structure for reference but never executing
+        with st.form(key="risk_form"):
+            st.subheader("Scenario Inputs")
         
         # Get suggested values from AI analysis if available
         suggested = st.session_state.ai_analysis if st.session_state.ai_analysis else None
@@ -1098,6 +1107,398 @@ def main():
         
         st.info("💡 **Tip:** Use this summary to structure conversations with legal, privacy, security, and compliance partners before deployment.")
 
+    st.markdown("---")
+    _render_about_section()
+
+
+def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
+    """Automatically generate risk assessment from AI analysis results."""
+    
+    # Convert AI analysis to RiskInputs
+    risk_inputs = RiskInputs(
+        contains_pii=ai_analysis.contains_pii,
+        customer_facing=ai_analysis.customer_facing,
+        high_stakes=ai_analysis.high_stakes,
+        autonomy_level=ai_analysis.autonomy_level,
+        sector=ai_analysis.sector,
+        modifiers=list(ai_analysis.modifiers),
+        model_type=ai_analysis.model_type,
+        data_source=ai_analysis.data_source,
+        learns_in_production=ai_analysis.learns_in_production,
+        international_data=ai_analysis.international_data,
+        explainability_level=ai_analysis.explainability_level,
+        uses_foundation_model=ai_analysis.uses_foundation_model,
+        generates_synthetic_content=ai_analysis.generates_synthetic_content,
+        dual_use_risk=ai_analysis.dual_use_risk,
+        decision_reversible=ai_analysis.decision_reversible,
+        protected_populations=list(ai_analysis.protected_populations),
+    )
+    assessment = calculate_risk_score(risk_inputs)
+    scenario_context = _build_scenario_context(risk_inputs, assessment.tier)
+    
+    controls = select_applicable_controls(packs, scenario_context)
+    
+    # Generate unified governance assessment
+    st.subheader("📋 Governance Assessment")
+    
+    # Build comprehensive prose assessment
+    risk_tier_icons = {
+        "Low": "🟢",
+        "Medium": "🟡",
+        "High": "🟠",
+        "Critical": "🔴"
+    }
+    risk_icon = risk_tier_icons.get(assessment.tier, "⚪")
+    
+    # Start with risk tier
+    st.markdown(f"### {risk_icon} Risk Classification: **{assessment.tier}**")
+    
+    # Build narrative assessment combining AI and traditional analysis
+    assessment_narrative = []
+    
+    # Include AI reasoning
+    if hasattr(ai_analysis, 'reasoning'):
+        assessment_narrative.append(f"**Analysis:** {ai_analysis.reasoning}")
+    
+    # Note if AI and traditional engine differ
+    if hasattr(ai_analysis, 'estimated_risk_tier') and ai_analysis.estimated_risk_tier != assessment.tier:
+        assessment_narrative.append(f"\n*Note: Initial AI assessment suggested {ai_analysis.estimated_risk_tier} risk tier based on scenario description, while the formal scoring model yielded {assessment.tier} (score: {assessment.score}). This variance may indicate nuances worth reviewing with legal/compliance.*")
+    
+    # Contributing factors
+    if assessment.contributing_factors:
+        factors_text = ", ".join(assessment.contributing_factors)
+        assessment_narrative.append(f"\n**Key Risk Drivers:** {factors_text}")
+    
+    # Framework alignment (from AI if available)
+    if hasattr(ai_analysis, 'framework_alignment'):
+        assessment_narrative.append(f"\n**Regulatory Frameworks Implicated:** {ai_analysis.framework_alignment}")
+    
+    # Key risk factors (from AI if available)
+    if hasattr(ai_analysis, 'key_risk_factors') and ai_analysis.key_risk_factors:
+        risks_bullets = "\n".join([f"- {risk}" for risk in ai_analysis.key_risk_factors])
+        assessment_narrative.append(f"\n**Specific Risks Identified:**\n{risks_bullets}")
+    
+    # Render the full narrative
+    st.markdown("\n\n".join(assessment_narrative))
+    
+    # Recommended safeguards section
+    if hasattr(ai_analysis, 'recommended_safeguards') and ai_analysis.recommended_safeguards:
+        st.markdown("\n**Recommended Governance Controls:**")
+        for i, safeguard in enumerate(ai_analysis.recommended_safeguards, 1):
+            st.markdown(f"{i}. {safeguard}")
+        st.caption("*These recommendations are derived from AI analysis of the scenario against established governance frameworks. Review the policy pack controls below for formal requirements.*")
+    
+    # Standards tags
+    st.markdown("---")
+    st.markdown("**📚 Governance Standards Applied:**")
+    
+    # Collect unique authorities from triggered controls
+    authorities = set()
+    for control in controls:
+        authorities.add(control.authority)
+    
+    # Display as badges/tags
+    if authorities:
+        # Create color-coded badges for different standards
+        standard_colors = {
+            "NIST AI RMF": "#0066cc",
+            "EU AI Act": "#003399",
+            "ISO/IEC 42001": "#006600",
+            "OWASP LLM Top 10": "#cc0000",
+            "MITRE ATLAS": "#990000",
+            "US OMB M-24-10": "#4d4d4d"
+        }
+        
+        badge_html = " ".join([
+            f'<span style="background-color: {standard_colors.get(auth, "#666666")}; color: white; padding: 4px 12px; border-radius: 12px; margin: 4px; display: inline-block; font-size: 0.85em;">{auth}</span>'
+            for auth in sorted(authorities)
+        ])
+        st.markdown(badge_html, unsafe_allow_html=True)
+    else:
+        st.caption("No specific standards triggered for this risk profile.")
+    
+    # Safeguards surface authority + clause so reviewers can trace each recommendation.
+    st.markdown("---")
+    st.subheader("Required Safeguards from Policy Packs")
+    st.caption("These safeguards are triggered by the traditional risk engine based on YAML policy packs.")
+    if controls:
+        for control in controls:
+            with st.expander(f"{control.title} — {control.authority}", expanded=False):
+                st.markdown(
+                    "\n".join(
+                        [
+                            f"**ID:** {control.id}",
+                            f"**Clause:** {control.clause}",
+                            f"**Description:** {control.description}",
+                            f"**Evidence:** {control.evidence}",
+                            f"**Tags:** {', '.join(control.tags) if control.tags else 'None'}",
+                        ]
+                    )
+                )
+                if control.mappings:
+                    mapping_lines: List[str] = []
+                    for key, values in control.mappings.items():
+                        mapping_lines.append(f"{key}: {', '.join(values)}")
+                    st.markdown(f"**Mappings:** {', '.join(mapping_lines)}")
+    else:
+        st.warning(
+            "No safeguards matched the scenario inputs. Review policy coverage before approving.",
+            icon="⚠️",
+        )
+    
+    # Provide download for decision record (without requiring owner/approver since AI-driven)
+    record = build_decision_record(
+        scenario=scenario_context,
+        assessment=assessment,
+        controls=controls,
+        owner="AI-Driven Assessment",
+        approver="Pending Review",
+    )
+    
+    st.download_button(
+        label="Download Decision Record (.md)",
+        data=record,
+        file_name="frontier_ai_decision_record.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
+    
+    # Owners & Next Steps
+    st.markdown("---")
+    st.subheader("👥 Owners & Next Steps")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**📝 Recommended Owners:**")
+        if assessment.tier in ["Critical", "High"]:
+            st.markdown("""
+            - **Product Lead:** Accountable for roadmap delays
+            - **Legal/Privacy:** Sign off on compliance gaps
+            - **Security:** Approve threat model
+            - **Exec Sponsor:** Final go/no-go decision
+            """)
+        elif assessment.tier == "Medium":
+            st.markdown("""
+            - **Product Lead:** Owns risk acceptance
+            - **Legal or Privacy:** Review data handling
+            - **Engineering Lead:** Validate technical controls
+            """)
+        else:  # Low
+            st.markdown("""
+            - **Product Lead:** Document decision
+            - **Engineering Lead:** Standard review process
+            """)
+    
+    with col2:
+        st.markdown("**⚡ Immediate Next Steps:**")
+        if assessment.tier == "Critical":
+            st.error("""
+            🚨 **STOP-SHIP TIER**
+            1. Escalate to exec leadership immediately
+            2. Engage legal, privacy, and security teams
+            3. Conduct formal risk assessment (this is preliminary)
+            4. Do not deploy until all Critical-tier safeguards are in place
+            """)
+        elif assessment.tier == "High":
+            st.warning("""
+            ⚠️ **High-Risk - Formal Review Required**
+            1. Schedule legal/compliance review
+            2. Document all safeguards in design doc
+            3. Implement monitoring and audit logging
+            4. Plan for external audit if customer-facing
+            """)
+        elif assessment.tier == "Medium":
+            st.info("""
+            ℹ️ **Medium Risk - Standard Process**
+            1. Review recommended safeguards
+            2. Add governance controls to backlog
+            3. Update privacy/security design docs
+            4. Proceed with normal launch process
+            """)
+        else:  # Low
+            st.success("""
+            ✅ **Low Risk - Proceed with Awareness**
+            1. Document this assessment
+            2. Implement basic safeguards
+            3. Monitor for scope changes
+            4. Standard launch process applies
+            """)
+    
+    # Interactive Governance Q&A (NEW)
+    if hasattr(ai_analysis, 'estimated_risk_tier'):
+        st.markdown("---")
+        st.subheader("💬 Ask Questions About This Assessment")
+        st.caption("Get instant answers about safeguards, frameworks, implementation steps, or draft stakeholder communications")
+        
+        # Initialize chat history
+        if "governance_chat" not in st.session_state:
+            st.session_state.governance_chat = []
+        
+        # Suggested questions
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("❓ Why this risk tier?", use_container_width=True):
+                st.session_state.pending_question = f"Why did this assessment result in {assessment.tier} tier? Explain the specific factors."
+        with col2:
+            if st.button("📋 Explain safeguards", use_container_width=True):
+                st.session_state.pending_question = "Explain the most critical safeguards and why they're required for this scenario."
+        with col3:
+            if st.button("✉️ Draft email to legal", use_container_width=True):
+                st.session_state.pending_question = "Draft a concise email to our legal team explaining why we need their review before launch."
+        
+        # Display chat history
+        for msg in st.session_state.governance_chat:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+        
+        # Handle pending question from button clicks
+        if "pending_question" in st.session_state:
+            question = st.session_state.pending_question
+            del st.session_state.pending_question
+            
+            # Process the question
+            st.session_state.governance_chat.append({"role": "user", "content": question})
+            
+            # Get AI response
+            with st.spinner("Thinking..."):
+                try:
+                    # Get API key from Streamlit Cloud secrets
+                    api_key = None
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                    except:
+                        pass
+                    
+                    if api_key:
+                        response = _get_governance_answer(
+                            question=question,
+                            use_case=use_case,
+                            assessment=assessment,
+                            controls=controls,
+                            ai_analysis=ai_analysis,
+                            api_key=api_key
+                        )
+                        st.session_state.governance_chat.append({"role": "assistant", "content": response})
+                    else:
+                        st.session_state.governance_chat.append({
+                            "role": "assistant",
+                            "content": "⚠️ OpenAI API key not configured. Please contact the administrator."
+                        })
+                except Exception as e:
+                    st.session_state.governance_chat.append({
+                        "role": "assistant", 
+                        "content": f"❌ Error getting response: {str(e)}"
+                    })
+            
+            st.rerun()
+        
+        # Chat input
+        if question := st.chat_input("Ask about frameworks, safeguards, implementation steps, or request a draft..."):
+            # Add user message
+            st.session_state.governance_chat.append({"role": "user", "content": question})
+            
+            # Get AI response
+            with st.spinner("Thinking..."):
+                try:
+                    # Get API key from Streamlit Cloud secrets
+                    api_key = None
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                    except:
+                        pass
+                    
+                    if api_key:
+                        response = _get_governance_answer(
+                            question=question,
+                            use_case=use_case,
+                            assessment=assessment,
+                            controls=controls,
+                            ai_analysis=ai_analysis,
+                            api_key=api_key
+                        )
+                        st.session_state.governance_chat.append({"role": "assistant", "content": response})
+                    else:
+                        st.session_state.governance_chat.append({
+                            "role": "assistant",
+                            "content": "⚠️ OpenAI API key not configured. Please contact the administrator."
+                        })
+                except Exception as e:
+                    st.session_state.governance_chat.append({
+                        "role": "assistant", 
+                        "content": f"❌ Error getting response: {str(e)}"
+                    })
+            
+            st.rerun()
+        
+        # Export chat history
+        if st.session_state.governance_chat:
+            chat_export = "# Governance Q&A Session\n\n"
+            chat_export += f"**Scenario:** {use_case}\n\n"
+            chat_export += f"**Risk Tier:** {assessment.tier} (score: {assessment.score})\n\n"
+            chat_export += "---\n\n"
+            
+            for msg in st.session_state.governance_chat:
+                role = "**You:**" if msg["role"] == "user" else "**Governance Advisor:**"
+                chat_export += f"{role}\n{msg['content']}\n\n"
+            
+            st.download_button(
+                label="📥 Export Q&A Session",
+                data=chat_export,
+                file_name="governance_qa_session.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+    
+    # Governance Summary & Additional Context
+    st.markdown("---")
+    st.subheader("📝 Governance Summary & Additional Context")
+    
+    # Sector-specific considerations
+    sector_guidance = {
+        "Healthcare": """
+        **Healthcare-Specific Governance Considerations:**
+        - HIPAA compliance required for PHI processing
+        - FDA oversight if clinical decision support
+        - Joint Commission accreditation requirements
+        - State medical board regulations may apply
+        """,
+        "Finance": """
+        **Financial Services Governance Considerations:**
+        - Model Risk Management (SR 11-7) if credit/capital
+        - Fair lending laws (ECOA, Fair Housing Act)
+        - SEC/FINRA rules if investment advice
+        - AML/KYC monitoring requirements
+        """,
+        "Children": """
+        **Children-Specific Governance Considerations:**
+        - COPPA compliance (parental consent under 13)
+        - EU AI Act prohibits certain manipulative uses
+        - Age-appropriate design code requirements
+        - Heightened duty of care for vulnerable users
+        """,
+        "Critical Infrastructure": """
+        **Critical Infrastructure Governance Considerations:**
+        - CISA reporting requirements for incidents
+        - Sector-specific regulations (NERC CIP for energy, TSA for transport)
+        - National security implications
+        - Resilience and continuity planning
+        """
+    }
+    
+    if risk_inputs.sector in sector_guidance:
+        st.info(sector_guidance[risk_inputs.sector])
+    
+    # Clarification questions for reviewer
+    st.markdown("""
+    **Questions to Refine Assessment:**
+    - Is there a human-in-the-loop for high-risk decisions?
+    - What's the plan if the AI makes a wrong decision?
+    - How will you monitor for drift or degradation?
+    - What's your incident response plan?
+    - Have you consulted legal/privacy/security teams yet?
+    """)
+    
     st.markdown("---")
     _render_about_section()
 

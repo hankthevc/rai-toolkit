@@ -39,7 +39,7 @@ class InterviewResponse(BaseModel):
     )
     questions: list[InterviewQuestion] = Field(
         default_factory=list,
-        description="List of clarifying questions to ask (3-5 max)"
+        description="List of clarifying questions to ask (1-5 as needed, only ask what's necessary)"
     )
     reasoning: str = Field(
         default="",
@@ -82,10 +82,11 @@ Your role is to ask targeted clarifying questions to ensure comprehensive risk a
    - If real-time learning → "How do you prevent data poisoning?"
    - If external API + PII → "What data goes to the vendor? Contract terms?"
 
-4. **Prioritize questions** (ask 3-5 max):
+4. **Prioritize questions** (ask 1-5 as needed, be efficient):
    - What would most change the risk tier?
    - What's required for stop-ship rules? (e.g., Critical + PII + irreversible)
    - What's legally mandated? (e.g., GDPR Art. 22 for automated decisions)
+   - **Only ask what you truly need** - if 1-2 questions are sufficient, stop there
 
 5. **Format requirements**:
    - Each question should be specific and actionable
@@ -95,9 +96,10 @@ Your role is to ask targeted clarifying questions to ensure comprehensive risk a
 
 **GUIDELINES:**
 - Ask about what's UNCLEAR, not what's already stated
-- Don't ask more than 5 questions at once (overwhelming)
-- If the description is comprehensive, set ready_for_analysis=True
+- Be efficient: Ask 1-2 questions if that's sufficient, up to 5 max if needed
+- If the description is comprehensive, set ready_for_analysis=True immediately
 - Focus on details that affect compliance, not just curiosity
+- Fewer, high-quality questions > exhaustive questioning
 - Use plain language, not legal jargon
 
 **EXAMPLE OUTPUT:**
