@@ -78,18 +78,23 @@ class ScenarioAnalysis(BaseModel):
     
     # AI analysis outputs
     reasoning: str = Field(
+        default="AI analysis in progress",
         description="Brief explanation of the analysis for transparency"
     )
     estimated_risk_tier: str = Field(
+        default="Medium",
         description="AI's estimated risk tier: Low, Medium, High, or Critical"
     )
     key_risk_factors: list[str] = Field(
+        default_factory=list,
         description="3-5 specific risk factors identified in this scenario"
     )
     recommended_safeguards: list[str] = Field(
+        default_factory=list,
         description="5-7 specific governance controls that should apply (based on NIST AI RMF, EU AI Act, OWASP, etc.)"
     )
     framework_alignment: str = Field(
+        default="General AI governance frameworks apply",
         description="Which governance frameworks are most relevant (e.g., 'EU AI Act High-Risk', 'NIST AI RMF Govern functions', 'OWASP LLM risks')"
     )
 
