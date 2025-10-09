@@ -20,6 +20,10 @@ def test_scenario_analysis_model():
         sector="Healthcare",
         modifiers=["Bio", "Cyber"],
         reasoning="Test scenario involves patient data and automated decisions.",
+        estimated_risk_tier="Critical",
+        key_risk_factors=["Patient data exposure", "Automated medical decisions"],
+        recommended_safeguards=["HIPAA compliance", "Human oversight"],
+        framework_alignment="EU AI Act High-Risk, NIST AI RMF GOVERN"
     )
 
     assert analysis.contains_pii is True
@@ -30,6 +34,10 @@ def test_scenario_analysis_model():
     assert "Bio" in analysis.modifiers
     assert "Cyber" in analysis.modifiers
     assert len(analysis.reasoning) > 0
+    assert analysis.estimated_risk_tier == "Critical"
+    assert len(analysis.key_risk_factors) > 0
+    assert len(analysis.recommended_safeguards) > 0
+    assert len(analysis.framework_alignment) > 0
 
 
 def test_scenario_analysis_autonomy_validation():
@@ -44,6 +52,10 @@ def test_scenario_analysis_autonomy_validation():
             sector="General",
             modifiers=[],
             reasoning="Test",
+            estimated_risk_tier="Low",
+            key_risk_factors=["Test factor"],
+            recommended_safeguards=["Test safeguard"],
+            framework_alignment="Test framework"
         )
         assert analysis.autonomy_level == level
 
@@ -57,6 +69,10 @@ def test_scenario_analysis_autonomy_validation():
             sector="General",
             modifiers=[],
             reasoning="Test",
+            estimated_risk_tier="Low",
+            key_risk_factors=["Test"],
+            recommended_safeguards=["Test"],
+            framework_alignment="Test"
         )
 
 
@@ -70,18 +86,25 @@ def test_format_analysis_summary():
         sector="Finance",
         modifiers=["Cyber"],
         reasoning="Financial system with human oversight and cyber threat exposure.",
+        estimated_risk_tier="High",
+        key_risk_factors=["Financial data exposure", "Cyber threats"],
+        recommended_safeguards=["Access controls", "Audit logging"],
+        framework_alignment="NIST AI RMF, ISO 42001"
     )
 
     summary = format_analysis_summary(analysis)
 
     # Check that summary includes key information
-    assert "AI Analysis Summary" in summary
+    assert "AI Governance Analysis" in summary
     assert "Financial system" in summary
     assert "Yes" in summary  # For PII
     assert "No" in summary   # For customer_facing
     assert "Human-in-the-loop" in summary
     assert "Finance" in summary
     assert "Cyber" in summary
+    assert "High Risk" in summary
+    assert "Financial data exposure" in summary
+    assert "NIST AI RMF" in summary
 
 
 def test_format_analysis_summary_no_modifiers():
@@ -94,12 +117,17 @@ def test_format_analysis_summary_no_modifiers():
         sector="General",
         modifiers=[],
         reasoning="Low-risk internal tool.",
+        estimated_risk_tier="Low",
+        key_risk_factors=["Minimal risk"],
+        recommended_safeguards=["Basic documentation"],
+        framework_alignment="General best practices"
     )
 
     summary = format_analysis_summary(analysis)
 
     assert "None" in summary  # Should indicate no modifiers
     assert "Suggestion only" in summary
+    assert "Low Risk" in summary
 
 
 # Integration test (requires API key, marked as skip by default)
