@@ -14,6 +14,10 @@ if str(REPO_ROOT) not in sys.path:
     # repository root so the shared ``common`` package resolves without installs.
     sys.path.append(str(REPO_ROOT))
 
+from common.utils.ai_parser import (
+    format_analysis_summary,
+    parse_scenario_with_ai,
+)
 from common.utils.exporters import build_decision_record
 from common.utils.policy_loader import (
     ScenarioContext,
@@ -60,22 +64,154 @@ def main():
 
     packs = _load_packs()
 
+    # Initialize session state for AI-parsed values
+    if "ai_analysis" not in st.session_state:
+        st.session_state.ai_analysis = None
+    if "show_ai_preview" not in st.session_state:
+        st.session_state.show_ai_preview = False
+
+    # AI Analysis section (outside form for interactivity)
+    st.subheader("🤖 AI-Powered Analysis (Experimental)")
+    st.caption("Meta-governance: This tool was vibecoded with AI—now it uses AI to help *you* assess AI systems.")
+    
+    # Quick reference always visible
+    st.info("""
+    **📋 Quick Guide:** Describe what your AI does, who uses it, what data it processes, how automated it is, and what happens if it fails. 
+    See detailed examples below. ⬇️
+    """)
+    
+    # Show prompt tips prominently
+    with st.expander("💡 How to Write a Good Prompt — Full Examples & Tips", expanded=False):
+        st.markdown("""
+        **Include these 6 elements for best AI analysis:**
+        
+        1. **What the AI does** — Core functionality and decision-making role
+        2. **Who uses it** — Internal employees, customers, vulnerable populations, general public
+        3. **What data it processes** — Personal info, health records, financial data, behavioral data
+        4. **Level of automation** — Does it suggest, assist, decide with oversight, or act autonomously?
+        5. **Impact domain** — What happens if it makes a mistake? (safety, rights, finances, privacy)
+        6. **Context flags** — Healthcare, finance, children, cybersecurity, bio/life sciences, disinformation
+        
+        ---
+        
+        ### ✅ Example: Healthcare Chatbot (Critical Risk)
+        
+        *"A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses their medical records to check medication history and insurance eligibility. Patients interact directly via web and mobile app. The system suggests appointment times but requires nurse approval for prescription refills."*
+        
+        **Why it's good:** Clear functionality (scheduling/prescriptions), users (patients), data (medical records), automation (suggests with nurse approval), impact (healthcare decisions), context (healthcare).
+        
+        ---
+        
+        ### ✅ Example: Code Copilot (Low Risk)
+        
+        *"An internal code completion tool for our engineering team. It suggests code snippets based on our proprietary codebase. Engineers review all suggestions before committing. Only used by employees with existing code access. No customer data involved."*
+        
+        **Why it's good:** Clear functionality (code suggestions), users (internal engineers), data (code, no customer data), automation (suggestion only), impact (low - human review), context (internal tooling).
+        
+        ---
+        
+        ### ✅ Example: Trading System (Critical Risk)
+        
+        *"An automated trading system that buys and sells securities based on market signals. It executes trades autonomously up to $50K per trade without human review. Larger trades escalate to compliance. Processes real-time market data and client portfolio information."*
+        
+        **Why it's good:** Clear functionality (automated trading), users (implicit: clients), data (portfolio + market data), automation (autonomous up to threshold), impact (financial), context (finance).
+        
+        ---
+        
+        ### ❌ Too Vague Examples
+        
+        - **"A chatbot for customers"** → Missing: What does it do? What data? What decisions? What stakes?
+        - **"AI for hiring"** → Missing: Resume screening? Interview scheduling? Autonomous rejection? What data does it see?
+        - **"Machine learning model"** → Missing: Everything! What's the use case?
+        
+        ---
+        
+        **The AI will analyze your description and suggest risk modifiers. You'll review its reasoning before accepting.**
+        """)
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        quick_description = st.text_area(
+            "📝 Describe your AI use case (see tips above for what to include)",
+            placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
+            height=140,
+            key="quick_desc",
+            help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
+        )
+    with col2:
+        st.write("")  # Spacing
+        st.write("")  # Spacing
+        api_key_input = st.text_input(
+            "OpenAI API Key (optional)",
+            type="password",
+            help="Leave blank to use OPENAI_API_KEY environment variable",
+            key="api_key_input"
+        )
+        analyze_button = st.button("🔍 Analyze with AI", use_container_width=True, type="primary")
+
+    # Handle AI analysis
+    if analyze_button and quick_description:
+        with st.spinner("Analyzing scenario with AI..."):
+            try:
+                import os
+                api_key = api_key_input or os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    st.error("⚠️ OpenAI API key required. Set OPENAI_API_KEY environment variable or enter above.")
+                else:
+                    analysis = parse_scenario_with_ai(quick_description, api_key=api_key)
+                    if analysis:
+                        st.session_state.ai_analysis = analysis
+                        st.session_state.show_ai_preview = True
+                        st.success("✅ Analysis complete! Review suggestions below, then use them to fill the form.")
+                    else:
+                        st.error("Analysis failed. Check your API key and description.")
+            except ImportError:
+                st.error("⚠️ OpenAI package not installed. Run: `pip install openai`")
+            except Exception as e:
+                st.error(f"Analysis error: {e}")
+
+    # Display AI analysis preview
+    if st.session_state.show_ai_preview and st.session_state.ai_analysis:
+        st.info(format_analysis_summary(st.session_state.ai_analysis))
+        if st.button("👍 Use These Values", use_container_width=True):
+            st.info("✅ Scroll down and use the suggested values in the form below!")
+
+    st.markdown("---")
+
+    # Main risk assessment form
     with st.form(key="risk_form"):
         st.subheader("Scenario Inputs")
+        
+        # Get suggested values from AI analysis if available
+        suggested = st.session_state.ai_analysis if st.session_state.ai_analysis else None
+        
         use_case = st.text_area(
             "Describe the AI use case",
+            value=quick_description if quick_description else "",
             help="Summarize the scenario so the approval record captures context.",
         )
-        contains_pii = st.checkbox("Processes personal or sensitive data (PII)")
-        customer_facing = st.checkbox("Customer-facing or external exposure")
-        high_stakes = st.checkbox("High-stakes outcomes (safety, rights, finances)")
+        contains_pii = st.checkbox(
+            "Processes personal or sensitive data (PII)",
+            value=suggested.contains_pii if suggested else False,
+            help="✨ AI-suggested" if suggested else None
+        )
+        customer_facing = st.checkbox(
+            "Customer-facing or external exposure",
+            value=suggested.customer_facing if suggested else False,
+            help="✨ AI-suggested" if suggested else None
+        )
+        high_stakes = st.checkbox(
+            "High-stakes outcomes (safety, rights, finances)",
+            value=suggested.high_stakes if suggested else False,
+            help="✨ AI-suggested" if suggested else None
+        )
         
         st.markdown("**Autonomy Level**")
         autonomy_level = st.slider(
-            "Select autonomy level",
+            "Select autonomy level" + (" (✨ AI-suggested)" if suggested else ""),
             min_value=0,
             max_value=3,
-            value=0,
+            value=suggested.autonomy_level if suggested else 0,
             help="How much automated decision-making without human review?",
         )
         
@@ -90,19 +226,20 @@ def main():
             - **Level 3 (Full autonomy):** AI makes and executes decisions without human review in normal operation
               - Example: Automated trading system, autonomous vehicle, real-time content filtering
             """)
+        
+        sector_options = ["General", "Healthcare", "Finance", "Critical Infrastructure", "Children"]
+        sector_index = sector_options.index(suggested.sector) if suggested and suggested.sector in sector_options else 0
+        
         sector = st.selectbox(
-            "Primary sector",
-            options=[
-                "General",
-                "Healthcare",
-                "Finance",
-                "Critical Infrastructure",
-                "Children",
-            ],
+            "Primary sector" + (" (✨ AI-suggested)" if suggested else ""),
+            options=sector_options,
+            index=sector_index,
         )
+        
         modifiers = st.multiselect(
-            "Scenario modifiers",
+            "Scenario modifiers" + (" (✨ AI-suggested)" if suggested else ""),
             options=["Bio", "Cyber", "Disinformation", "Children"],
+            default=suggested.modifiers if suggested else [],
             help="Flag additional sensitivities that should raise safeguards.",
         )
 

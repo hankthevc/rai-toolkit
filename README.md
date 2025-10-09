@@ -5,11 +5,15 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**Key Judgment:** Responsible AI governance-as-code. Risk assessment, safeguards with policy citations, and exportable approval records.
+**Responsible AI governance-as-code.** Risk assessment, safeguards with policy citations, and exportable approval records—translating NIST AI RMF, EU AI Act, ISO 42001, OWASP LLM Top 10, and MITRE ATLAS into executable Python.
 
 **🚀 [Try the Live Demo](https://rai-toolkit.streamlit.app/)** — Assess AI scenarios and generate decision records in under 2 minutes.
 
-The Frontier AI Risk Assessment Framework (Project 1) demonstrates how policy, security, and engineering teams can run an intake, score risk, and assign safeguards inside a single workflow. Every safeguard is backed by an illustrative policy pack citation so compliance reviewers and threat analysts can trace each decision.
+**📄 [Portfolio Overview](PORTFOLIO.md)** — Detailed project walkthrough optimized for hiring managers and technical interviewers.
+
+---
+
+The **Frontier AI Risk Assessment Framework** demonstrates how policy, security, and engineering teams can run an intake, score risk, and assign safeguards inside a single workflow. Every safeguard is backed by policy pack citations so compliance reviewers and threat analysts can trace each decision. Built by a former White House NSC policy advisor to show how governance can operate as code, not just documents.
 
 ## Quickstart
 
@@ -25,6 +29,16 @@ streamlit run project1_risk_framework/app.py
 
 The app launches at `http://localhost:8501`. Enter a scenario, flag contextual risk modifiers, and download the generated Decision Record to test the full workflow end-to-end.
 
+**For AI-Powered Analysis:** Set your OpenAI API key to enable intelligent form auto-fill:
+```bash
+export OPENAI_API_KEY="sk-..."  # Or enter directly in the app UI
+```
+
+**Writing effective prompts for AI analysis:**
+- ✅ **Good:** "A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses their medical records to check medication history and insurance eligibility. Patients interact directly via web and mobile app. The system suggests appointment times but requires nurse approval for prescription refills."
+- ✅ **Good:** "An internal code completion tool for our engineering team. It suggests code snippets based on our proprietary codebase. Engineers review all suggestions before committing. Only used by employees with existing code access. No customer data involved."
+- ❌ **Too vague:** "A chatbot for customers" (missing: purpose, data, automation level, impact)
+
 **For Analytics Dashboard:** Generate sample data to populate the analytics page:
 ```bash
 python scripts/generate_sample_data.py --count 150
@@ -35,6 +49,7 @@ python scripts/generate_sample_data.py --count 150
 **🌐 Production deployment:** https://rai-toolkit.streamlit.app/
 
 Try the live app to:
+- **Use AI to auto-fill** risk assessments from plain-language descriptions (NEW)
 - Assess AI scenarios with the risk calculator
 - View 15+ triggered safeguards for high-risk scenarios
 - Download Decision Records as markdown files
@@ -56,16 +71,41 @@ See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for detailed deployment guides (D
 
 ### Working from the hosted sandbox
 
-If you are collaborating through the coding assistant’s sandbox environment and want to move the repository to your own machine, follow the export instructions in [`docs/ACCESSING_SANDBOX.md`](docs/ACCESSING_SANDBOX.md). The guide walks through creating a `git bundle`, copying it out of the container, and pushing the history to your GitHub remote.
+If you are collaborating through the coding assistant's sandbox environment and want to move the repository to your own machine, follow the export instructions in [`docs/ACCESSING_SANDBOX.md`](docs/ACCESSING_SANDBOX.md). The guide walks through creating a `git bundle`, copying it out of the container, and pushing the history to your GitHub remote.
 
-> Screenshot placeholder: add once the Streamlit app is live.
+## 60-Second Tour for Recruiters
+
+**What this demonstrates:** Translating AI governance policy into executable code—risk triage, safeguard assignment, and audit-ready decision records.
+
+**Start here:**
+1. **[Live Demo](https://rai-toolkit.streamlit.app/)** (2 min) — Enter "healthcare chatbot" scenario → see 15+ safeguards trigger with policy citations → download Decision Record
+2. **[Healthcare Case Study](docs/case_studies/01_healthcare_chatbot.md)** (3 min) — Critical-tier assessment walkthrough showing PHI protection, adversarial testing, human oversight
+3. **[Framework Crosswalks](docs/crosswalks/)** (1 min skim) — How safeguards map to NIST AI RMF, EU AI Act, ISO 42001, OWASP LLM Top 10, MITRE ATLAS
+4. **Code deep-dive** (5 min) — [`common/utils/risk_engine.py`](common/utils/risk_engine.py) shows transparent scoring logic; [`common/policy_packs/`](common/policy_packs/) shows YAML-encoded safeguards with policy references
+
+**Skills on display:** Python (Streamlit, pytest), policy-as-code design, threat modeling, cross-functional communication (policy ↔ engineering), CI/CD (GitHub Actions).
+
+## Built with AI Coding Assistance
+
+This entire project was **vibecoded**—built iteratively using AI coding assistants (Claude, Cursor) to rapidly prototype, debug, and refine. Rather than spending weeks on boilerplate, I focused on governance logic, threat modeling, and user experience while AI handled scaffolding, test generation, and documentation formatting.
+
+**Why this matters for hiring:**
+- **Experimental mindset:** I treat AI as a force-multiplier, not a replacement—using it to explore ideas faster and iterate on feedback loops
+- **Maximizing frontier capabilities:** Just as I design red-team frameworks for frontier AI at 2430 Group, I leverage frontier AI for my own workflows
+- **Transparent about tooling:** Modern security/governance work requires understanding AI's capabilities and limitations firsthand; building with AI teaches both
+- **Outcome-focused:** 6 policy frameworks, 60+ safeguards, 3 case studies, full CI/CD—shipped in days, not months
+
+**The workflow:** Plain-language intent → AI generates scaffolding → I refine logic/policy accuracy → AI writes tests/docs → iterate. This is how governance-as-code should operate: rapid experimentation, transparent decision logic, and continuous validation.
+
+Now, the app uses AI to **autofill risk assessments** from plain-language descriptions—meta, but fitting.
 
 ## How Project 1 Operates
 
-1. **Scenario intake:** Reviewers capture a plain-language description, the autonomy level, and flags such as PII or customer-facing exposure.
-2. **Risk scoring:** A transparent additive model converts the inputs into a tier (Low/Medium/High/Critical) that teams can defend in interviews and audit readouts.
-3. **Policy selection:** YAML policy packs encode safeguards from recognized frameworks (e.g., NIST AI RMF, EU AI Act). Conditions inside each control determine whether it applies to the submitted scenario.
-4. **Decision Record export:** The Streamlit UI and shared exporter produce a Markdown file summarizing the risk tier, selected controls, and review ownership so the outcome can be filed in a ticketing system.
+1. **AI-powered scenario parsing (NEW):** Paste a plain-language use case description → OpenAI API analyzes it → get suggested risk modifiers with reasoning → review and approve → auto-fill the form. Meta-governance: AI built this tool, now AI helps *you* assess AI.
+2. **Scenario intake:** Reviewers capture a plain-language description, the autonomy level, and flags such as PII or customer-facing exposure.
+3. **Risk scoring:** A transparent additive model converts the inputs into a tier (Low/Medium/High/Critical) that teams can defend in interviews and audit readouts.
+4. **Policy selection:** YAML policy packs encode safeguards from recognized frameworks (e.g., NIST AI RMF, EU AI Act). Conditions inside each control determine whether it applies to the submitted scenario.
+5. **Decision Record export:** The Streamlit UI and shared exporter produce a Markdown file summarizing the risk tier, selected controls, and review ownership so the outcome can be filed in a ticketing system.
 
 Read the methodology deep dive in `docs/methodology_project1.md` for scoring rationale and governance trade-offs. A plain-language walkthrough of every file—written for early-career coders—is available in `docs/FILE_OVERVIEW.md`.
 
@@ -123,8 +163,21 @@ Potential vulnerabilities should be reported privately following the instruction
 
 ## Project Status
 
-- **Current milestone:** Project 1 — Frontier AI Risk Assessment Framework (v0.1 workstream in progress).
-- **Next steps:** Finish documentation polish, capture demo artifacts, and prepare for a public tag once reviewers confirm the workflow meets responsible AI governance expectations.
+- **Current milestone:** Project 1 — Frontier AI Risk Assessment Framework (v1.0 ready for production review)
+- **Deployment:** Live demo running at [rai-toolkit.streamlit.app](https://rai-toolkit.streamlit.app/)
+- **Documentation:** 3 case studies, 6 framework crosswalks, methodology deep-dive, and educational FILE_OVERVIEW
+- **Testing:** CI/CD pipeline with automated policy pack validation and risk tier tests
+- **Next steps:** Gather feedback from AI governance practitioners, explore Project 2 (continuous monitoring)
+
+## About Henry
+
+I'm an AI security strategist and former White House NSC policy advisor who translates frontier‑tech risk into executive action. I've built cross‑government coalitions (12 agencies, 30+ international partners) against spyware, run intelligence downgrades that protected U.S. elections, and now design red‑team frameworks for frontier systems at 2430 Group. 
+
+I built this RAI Toolkit to demonstrate governance‑as‑code in practice: quick risk triage, safeguards with policy citations, and exportable decision records that bridge policy, security, and engineering teams.
+
+**Connect:** [henryappel@gmail.com](mailto:henryappel@gmail.com) | Washington, DC
+
+**Background:** West Wing aide & intelligence policy advisor at the NSC (2023–2024); IC analyst/operator at ODNI/NCTC (2018–2025) across PRC/DPRK cyber, ransomware, spyware, and illicit tech transfers; M.A. Security Studies, Georgetown.
 
 ## Contact
 
