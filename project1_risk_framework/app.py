@@ -189,68 +189,69 @@ def main():
         
         # Defensive check for backward compatibility with old session state
         if not hasattr(analysis, 'estimated_risk_tier'):
-            st.warning("⚠️ Analysis format outdated. Please re-run the AI analysis.")
+            st.warning("⚠️ Analysis format outdated. Clearing cache and refreshing...")
             st.session_state.show_ai_preview = False
             st.session_state.ai_analysis = None
-            st.rerun()
-        
-        # Show AI's risk assessment prominently
-        risk_tier_colors = {
-            "Low": "🟢",
-            "Medium": "🟡", 
-            "High": "🟠",
-            "Critical": "🔴"
-        }
-        risk_icon = risk_tier_colors.get(analysis.estimated_risk_tier, "⚪")
-        
-        st.markdown(f"### {risk_icon} AI Assessment: **{analysis.estimated_risk_tier} Risk**")
-        
-        # Show reasoning
-        with st.expander("📋 AI's Reasoning & Analysis", expanded=True):
-            st.markdown(f"**Why this risk tier:**\n\n{analysis.reasoning}")
-            
-            st.markdown("---")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("**🎯 Key Risk Factors:**")
-                for factor in analysis.key_risk_factors:
-                    st.markdown(f"- {factor}")
-            
-            with col2:
-                st.markdown("**📚 Framework Alignment:**")
-                st.markdown(analysis.framework_alignment)
-        
-        # Show recommended safeguards
-        with st.expander("🛡️ AI-Recommended Safeguards", expanded=True):
-            st.markdown("Based on the scenario analysis, these governance controls should apply:")
-            for i, safeguard in enumerate(analysis.recommended_safeguards, 1):
-                st.markdown(f"{i}. {safeguard}")
-            st.caption("*Note: The traditional risk engine below will also apply safeguards based on policy packs. Compare both sets of recommendations.*")
-        
-        # Show form values
-        with st.expander("📝 Form Auto-Fill Values", expanded=False):
-            autonomy_labels = {
-                0: "Suggestion only",
-                1: "Human-in-the-loop",
-                2: "Human oversight",
-                3: "Full autonomy"
+            st.info("Please click the 'Analyze with AI' button again to re-run the analysis with the updated format.")
+            # Don't continue executing this section
+        else:
+            # Show AI's risk assessment prominently
+            risk_tier_colors = {
+                "Low": "🟢",
+                "Medium": "🟡", 
+                "High": "🟠",
+                "Critical": "🔴"
             }
-            st.markdown(f"""
-            These values will auto-fill the form below:
+            risk_icon = risk_tier_colors.get(analysis.estimated_risk_tier, "⚪")
             
-            - **PII/Sensitive Data:** {"Yes" if analysis.contains_pii else "No"}
-            - **Customer-Facing:** {"Yes" if analysis.customer_facing else "No"}
-            - **High-Stakes:** {"Yes" if analysis.high_stakes else "No"}
-            - **Autonomy Level:** {analysis.autonomy_level} ({autonomy_labels.get(analysis.autonomy_level, "Unknown")})
-            - **Sector:** {analysis.sector}
-            - **Modifiers:** {", ".join(analysis.modifiers) if analysis.modifiers else "None"}
+            st.markdown(f"### {risk_icon} AI Assessment: **{analysis.estimated_risk_tier} Risk**")
             
-            *Scroll down to review the form. You can override any suggested values.*
-            """)
-        
-        st.info("⬇️ **Next Step:** Scroll down to review the form (values auto-filled) and submit for the traditional risk engine's assessment.")
+            # Show reasoning
+            with st.expander("📋 AI's Reasoning & Analysis", expanded=True):
+                st.markdown(f"**Why this risk tier:**\n\n{analysis.reasoning}")
+                
+                st.markdown("---")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**🎯 Key Risk Factors:**")
+                    for factor in analysis.key_risk_factors:
+                        st.markdown(f"- {factor}")
+                
+                with col2:
+                    st.markdown("**📚 Framework Alignment:**")
+                    st.markdown(analysis.framework_alignment)
+            
+            # Show recommended safeguards
+            with st.expander("🛡️ AI-Recommended Safeguards", expanded=True):
+                st.markdown("Based on the scenario analysis, these governance controls should apply:")
+                for i, safeguard in enumerate(analysis.recommended_safeguards, 1):
+                    st.markdown(f"{i}. {safeguard}")
+                st.caption("*Note: The traditional risk engine below will also apply safeguards based on policy packs. Compare both sets of recommendations.*")
+            
+            # Show form values
+            with st.expander("📝 Form Auto-Fill Values", expanded=False):
+                autonomy_labels = {
+                    0: "Suggestion only",
+                    1: "Human-in-the-loop",
+                    2: "Human oversight",
+                    3: "Full autonomy"
+                }
+                st.markdown(f"""
+                These values will auto-fill the form below:
+                
+                - **PII/Sensitive Data:** {"Yes" if analysis.contains_pii else "No"}
+                - **Customer-Facing:** {"Yes" if analysis.customer_facing else "No"}
+                - **High-Stakes:** {"Yes" if analysis.high_stakes else "No"}
+                - **Autonomy Level:** {analysis.autonomy_level} ({autonomy_labels.get(analysis.autonomy_level, "Unknown")})
+                - **Sector:** {analysis.sector}
+                - **Modifiers:** {", ".join(analysis.modifiers) if analysis.modifiers else "None"}
+                
+                *Scroll down to review the form. You can override any suggested values.*
+                """)
+            
+            st.info("⬇️ **Next Step:** Scroll down to review the form (values auto-filled) and submit for the traditional risk engine's assessment.")
 
     st.markdown("---")
 
