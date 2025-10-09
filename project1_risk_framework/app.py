@@ -18,6 +18,10 @@ from common.utils.ai_parser import (
     format_analysis_summary,
     parse_scenario_with_ai,
 )
+from common.utils.ai_interviewer import (
+    conduct_interview,
+    format_interview_questions,
+)
 from common.utils.exporters import build_decision_record
 from common.utils.policy_loader import (
     ScenarioContext,
@@ -58,6 +62,104 @@ def _build_scenario_context(inputs: RiskInputs, tier: str) -> ScenarioContext:
         decision_reversible=inputs.decision_reversible,
         protected_populations=inputs.protected_populations,
     )
+
+
+def _get_governance_answer(question: str, use_case: str, assessment, controls, ai_analysis, api_key: str) -> str:
+    """Get context-aware governance answers using OpenAI."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return "❌ OpenAI package not installed. This feature requires the openai package."
+    
+    # Build context from the assessment
+    risk_factors_text = ", ".join(assessment.contributing_factors) if assessment.contributing_factors else "None"
+    
+    controls_text = ""
+    if controls:
+        for i, control in enumerate(controls[:5], 1):  # Top 5 safeguards
+            controls_text += f"{i}. **{control.title}** ({control.authority} {control.clause}): {control.description}\n"
+    else:
+        controls_text = "No specific safeguards triggered for this risk profile."
+    
+    frameworks_text = ai_analysis.framework_alignment if hasattr(ai_analysis, 'framework_alignment') else "General AI governance frameworks"
+    
+    # Build comprehensive system prompt
+    system_prompt = f"""You are an expert AI governance advisor helping teams understand their risk assessment results and implement safeguards.
+
+**CURRENT ASSESSMENT CONTEXT:**
+
+**Scenario:** {use_case}
+
+**Risk Classification:**
+- Tier: {assessment.tier}
+- Score: {assessment.score} points
+- Key Risk Factors: {risk_factors_text}
+
+**Applicable Governance Frameworks:** {frameworks_text}
+
+**Top Safeguards Required:**
+{controls_text}
+
+**AI Analysis Reasoning:** {ai_analysis.reasoning if hasattr(ai_analysis, 'reasoning') else 'Not available'}
+
+---
+
+**YOUR ROLE:**
+You are a helpful governance advisor who:
+- Explains WHY specific safeguards are required (citing regulations)
+- Clarifies technical governance concepts in plain language
+- Provides actionable implementation guidance
+- Helps draft communications to legal/compliance/security teams
+- References the SPECIFIC assessment details above in your answers
+
+**GUIDELINES:**
+1. **Be specific:** Always reference the actual scenario, risk tier, and safeguards from THIS assessment
+2. **Be practical:** Provide concrete next steps, not just theory
+3. **Cite sources:** Mention specific regulations (GDPR Art. 22, HIPAA 164.308, EU AI Act Art. 52, etc.)
+4. **Be concise:** 2-3 paragraphs max unless asked for detailed explanation
+5. **Caveat appropriately:** Remind users to validate with legal/compliance when making decisions
+
+**EXAMPLE RESPONSE STYLES:**
+
+For "Why" questions:
+- Explain the specific risk factors that led to the tier/safeguard
+- Connect to regulatory requirements
+- Use this assessment's details
+
+For "How" questions:
+- Provide step-by-step implementation guidance
+- Suggest tools/frameworks when relevant
+- Include success criteria
+
+For "Draft" requests:
+- Use professional but clear language
+- Include specific details from this scenario
+- Provide structure (subject line, sections, next steps)
+
+For framework questions:
+- Explain the regulation in plain language
+- Show how it applies to THIS scenario
+- Provide compliance checklist
+
+**IMPORTANT:** Always answer in the context of the current assessment shown above. Don't give generic governance advice - make it specific to this {assessment.tier} tier scenario with score {assessment.score}."""
+
+    try:
+        client = OpenAI(api_key=api_key)
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.7,  # Slightly higher for more conversational responses
+            max_tokens=800,  # Allow detailed responses
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        return f"❌ Error getting response: {str(e)}\n\nPlease check your API key and try again."
 
 
 def main():
@@ -144,6 +246,14 @@ def main():
         st.session_state.ai_analysis = None
     if "show_ai_preview" not in st.session_state:
         st.session_state.show_ai_preview = False
+    if "governance_chat" not in st.session_state:
+        st.session_state.governance_chat = []
+    if "interview_mode" not in st.session_state:
+        st.session_state.interview_mode = False
+    if "interview_history" not in st.session_state:
+        st.session_state.interview_history = []
+    if "interview_questions" not in st.session_state:
+        st.session_state.interview_questions = None
 
     # AI Analysis section (outside form for interactivity)
     st.subheader("🤖 AI-Powered Analysis (Experimental)")
@@ -222,9 +332,150 @@ def main():
             help="Leave blank to use OPENAI_API_KEY environment variable",
             key="api_key_input"
         )
-        analyze_button = st.button("🔍 Analyze with AI", use_container_width=True, type="primary")
+        
+        col_a, col_b = st.columns(2)
+        with col_a:
+            interview_button = st.button("💬 Interview Mode (Recommended)", use_container_width=True, type="primary", 
+                                        help="AI asks clarifying questions for comprehensive analysis")
+        with col_b:
+            analyze_button = st.button("⚡ Quick Analysis", use_container_width=True,
+                                      help="One-shot analysis without follow-up questions")
 
-    # Handle AI analysis
+    # Handle Interview Mode (NEW - preferred flow)
+    if interview_button and quick_description:
+        with st.spinner("Analyzing your description and preparing questions..."):
+            try:
+                import os
+                # Get API key (same logic as analysis)
+                api_key = None
+                if api_key_input and api_key_input.strip():
+                    api_key = api_key_input.strip()
+                    st.info("Using API key from input field...")
+                if not api_key:
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                        if api_key:
+                            st.info("Using API key from Streamlit Cloud secrets...")
+                    except:
+                        pass
+                if not api_key:
+                    api_key = os.getenv("OPENAI_API_KEY")
+                    if api_key:
+                        st.info("Using API key from environment variable...")
+                
+                if not api_key:
+                    st.error("⚠️ OpenAI API key required for interview mode.")
+                else:
+                    # Conduct initial interview
+                    interview_response = conduct_interview(
+                        initial_description=quick_description,
+                        conversation_history=st.session_state.interview_history,
+                        api_key=api_key
+                    )
+                    
+                    if interview_response:
+                        if interview_response.ready_for_analysis:
+                            # Enough context gathered, proceed to analysis
+                            st.success("✅ Sufficient context gathered! Proceeding with comprehensive analysis...")
+                            # Build enriched description from conversation
+                            enriched_description = quick_description + "\n\n**Additional Context from Interview:**\n"
+                            for turn in st.session_state.interview_history:
+                                enriched_description += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
+                            
+                            analysis = parse_scenario_with_ai(enriched_description, api_key=api_key)
+                            if analysis:
+                                st.session_state.ai_analysis = analysis
+                                st.session_state.show_ai_preview = True
+                                st.session_state.interview_mode = False
+                                st.session_state.interview_history = []  # Reset for next time
+                        else:
+                            # Need more info - show questions
+                            st.session_state.interview_mode = True
+                            st.session_state.interview_questions = interview_response
+                            st.rerun()
+            except ImportError:
+                st.error("⚠️ OpenAI package not installed. Run: `pip install openai`")
+            except Exception as e:
+                st.error(f"❌ Interview error: {str(e)}")
+                import traceback
+                st.code(traceback.format_exc())
+    
+    # Display interview questions if in interview mode
+    if st.session_state.interview_mode and st.session_state.interview_questions:
+        st.markdown("---")
+        st.subheader("🔍 Clarifying Questions for Comprehensive Assessment")
+        
+        response = st.session_state.interview_questions
+        st.info(response.reasoning)
+        
+        st.markdown(f"**Please answer these {len(response.questions)} questions to ensure accurate risk assessment:**")
+        
+        # Create form for answers
+        with st.form("interview_answers"):
+            answers = []
+            for i, q in enumerate(response.questions):
+                st.markdown(f"**Question {i+1}:** {q.question}")
+                st.caption(f"💡 Why this matters: {q.rationale} (*{q.framework_reference}*)")
+                answer = st.text_area(
+                    f"Your answer #{i+1}:",
+                    key=f"interview_q_{i}",
+                    height=80,
+                    placeholder="Be specific - this affects the risk assessment..."
+                )
+                answers.append({"question": q.question, "answer": answer})
+                st.markdown("---")
+            
+            submit_answers = st.form_submit_button("✅ Submit Answers & Continue", use_container_width=True)
+        
+        if submit_answers:
+            # Check all answers provided
+            if all(a["answer"].strip() for a in answers):
+                # Add to history
+                st.session_state.interview_history.extend(answers)
+                
+                # Get API key again
+                import os
+                api_key = None
+                if api_key_input and api_key_input.strip():
+                    api_key = api_key_input.strip()
+                if not api_key:
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                    except:
+                        pass
+                if not api_key:
+                    api_key = os.getenv("OPENAI_API_KEY")
+                
+                # Continue interview or proceed to analysis
+                with st.spinner("Processing your answers..."):
+                    interview_response = conduct_interview(
+                        initial_description=quick_description,
+                        conversation_history=st.session_state.interview_history,
+                        api_key=api_key
+                    )
+                    
+                    if interview_response and interview_response.ready_for_analysis:
+                        # Ready for final analysis
+                        enriched_description = quick_description + "\n\n**Additional Context from Interview:**\n"
+                        for turn in st.session_state.interview_history:
+                            enriched_description += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
+                        
+                        analysis = parse_scenario_with_ai(enriched_description, api_key=api_key)
+                        if analysis:
+                            st.session_state.ai_analysis = analysis
+                            st.session_state.show_ai_preview = True
+                            st.session_state.interview_mode = False
+                            st.session_state.interview_questions = None
+                            st.success("✅ Comprehensive analysis complete based on interview!")
+                            st.rerun()
+                    else:
+                        # More questions needed
+                        st.session_state.interview_questions = interview_response
+                        st.rerun()
+            else:
+                st.warning("⚠️ Please answer all questions to continue the assessment.")
+    
+    # Handle Quick Analysis (original one-shot flow)
     if analyze_button and quick_description:
         with st.spinner("Analyzing scenario with AI..."):
             try:
@@ -721,6 +972,143 @@ def main():
     
     st.info("💡 **Tip:** Assign specific owners to each next step and track completion in your project management system")
 
+    # Interactive Governance Q&A (NEW)
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'estimated_risk_tier'):
+        st.markdown("---")
+        st.subheader("💬 Ask Questions About This Assessment")
+        st.caption("Get instant answers about safeguards, frameworks, implementation steps, or draft stakeholder communications")
+        
+        # Initialize chat history
+        if "governance_chat" not in st.session_state:
+            st.session_state.governance_chat = []
+        
+        # Suggested questions
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("❓ Why this risk tier?", use_container_width=True):
+                st.session_state.pending_question = f"Why did this assessment result in {assessment.tier} tier? Explain the specific factors."
+        with col2:
+            if st.button("📋 Explain safeguards", use_container_width=True):
+                st.session_state.pending_question = "Explain the most critical safeguards and why they're required for this scenario."
+        with col3:
+            if st.button("✉️ Draft email to legal", use_container_width=True):
+                st.session_state.pending_question = "Draft a concise email to our legal team explaining why we need their review before launch."
+        
+        # Display chat history
+        for msg in st.session_state.governance_chat:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+        
+        # Handle pending question from button clicks
+        if "pending_question" in st.session_state:
+            question = st.session_state.pending_question
+            del st.session_state.pending_question
+            
+            # Process the question
+            st.session_state.governance_chat.append({"role": "user", "content": question})
+            
+            # Get AI response
+            with st.spinner("Thinking..."):
+                try:
+                    import os
+                    # Use same API key source as main AI analysis
+                    api_key = None
+                    if api_key_input and api_key_input.strip():
+                        api_key = api_key_input.strip()
+                    if not api_key:
+                        try:
+                            api_key = st.secrets.get("OPENAI_API_KEY")
+                        except:
+                            pass
+                    if not api_key:
+                        api_key = os.getenv("OPENAI_API_KEY")
+                    
+                    if api_key:
+                        response = _get_governance_answer(
+                            question=question,
+                            use_case=use_case,
+                            assessment=assessment,
+                            controls=controls,
+                            ai_analysis=st.session_state.ai_analysis,
+                            api_key=api_key
+                        )
+                        st.session_state.governance_chat.append({"role": "assistant", "content": response})
+                    else:
+                        st.session_state.governance_chat.append({
+                            "role": "assistant",
+                            "content": "⚠️ OpenAI API key required for Q&A. Please enter your API key in the field above or set OPENAI_API_KEY environment variable."
+                        })
+                except Exception as e:
+                    st.session_state.governance_chat.append({
+                        "role": "assistant", 
+                        "content": f"❌ Error getting response: {str(e)}"
+                    })
+            
+            st.rerun()
+        
+        # Chat input
+        if question := st.chat_input("Ask about frameworks, safeguards, implementation steps, or request a draft..."):
+            # Add user message
+            st.session_state.governance_chat.append({"role": "user", "content": question})
+            
+            # Get AI response
+            with st.spinner("Thinking..."):
+                try:
+                    import os
+                    # Use same API key source as main AI analysis
+                    api_key = None
+                    if api_key_input and api_key_input.strip():
+                        api_key = api_key_input.strip()
+                    if not api_key:
+                        try:
+                            api_key = st.secrets.get("OPENAI_API_KEY")
+                        except:
+                            pass
+                    if not api_key:
+                        api_key = os.getenv("OPENAI_API_KEY")
+                    
+                    if api_key:
+                        response = _get_governance_answer(
+                            question=question,
+                            use_case=use_case,
+                            assessment=assessment,
+                            controls=controls,
+                            ai_analysis=st.session_state.ai_analysis,
+                            api_key=api_key
+                        )
+                        st.session_state.governance_chat.append({"role": "assistant", "content": response})
+                    else:
+                        st.session_state.governance_chat.append({
+                            "role": "assistant",
+                            "content": "⚠️ OpenAI API key required for Q&A. Please enter your API key in the field above or set OPENAI_API_KEY environment variable."
+                        })
+                except Exception as e:
+                    st.session_state.governance_chat.append({
+                        "role": "assistant", 
+                        "content": f"❌ Error getting response: {str(e)}"
+                    })
+            
+            st.rerun()
+        
+        # Export chat history
+        if st.session_state.governance_chat:
+            chat_export = "# Governance Q&A Session\n\n"
+            chat_export += f"**Scenario:** {use_case}\n\n"
+            chat_export += f"**Risk Tier:** {assessment.tier} (score: {assessment.score})\n\n"
+            chat_export += "---\n\n"
+            
+            for msg in st.session_state.governance_chat:
+                role = "**You:**" if msg["role"] == "user" else "**Governance Advisor:**"
+                chat_export += f"{role}\n{msg['content']}\n\n"
+            
+            st.download_button(
+                label="📥 Export Q&A Session",
+                data=chat_export,
+                file_name="governance_qa_session.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+    
     if use_case:
         st.markdown("---")
         st.subheader("📝 Governance Summary & Additional Context")
