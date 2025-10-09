@@ -222,7 +222,7 @@ Analyze the use case comprehensively across 20+ risk dimensions and provide gove
 def parse_scenario_with_ai(
     use_case_description: str,
     api_key: Optional[str] = None,
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4o",  # Using gpt-4o for better structured output support
 ) -> Optional[ScenarioAnalysis]:
     """Parse a plain-language AI scenario and suggest risk assessment values.
 
