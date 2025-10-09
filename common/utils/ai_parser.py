@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 try:
     from openai import OpenAI
@@ -19,6 +19,8 @@ except ImportError:
 
 class ScenarioAnalysis(BaseModel):
     """Structured output from AI scenario parsing."""
+    
+    model_config = ConfigDict(protected_namespaces=())
 
     # Original factors
     contains_pii: bool = Field(
@@ -43,32 +45,41 @@ class ScenarioAnalysis(BaseModel):
         description="Scenario modifiers from: Bio, Cyber, Disinformation, Children"
     )
     
-    # New risk factors
+    # New risk factors (all with defaults for backward compatibility)
     model_type: str = Field(
+        default="Traditional ML",
         description="AI architecture: Traditional ML, Generative AI / LLM, Computer Vision, Multimodal, or Reinforcement Learning"
     )
     data_source: str = Field(
+        default="Proprietary/Internal",
         description="Training data source: Proprietary/Internal, Public Datasets, Internet-Scraped, User-Generated, Third-Party/Vendor, or Synthetic"
     )
     learns_in_production: bool = Field(
+        default=False,
         description="Whether the model updates/learns from production data (online learning)"
     )
     international_data: bool = Field(
+        default=False,
         description="Whether the system transfers personal data across international borders"
     )
     explainability_level: str = Field(
+        default="Post-hoc Explainable",
         description="Model interpretability: Inherently Interpretable, Post-hoc Explainable, Limited Explainability, or Black Box"
     )
     uses_foundation_model: str = Field(
+        default="No Third-Party",
         description="Third-party model usage: No Third-Party, Self-Hosted Open Source, Self-Hosted Proprietary, External API, or Hybrid"
     )
     generates_synthetic_content: bool = Field(
+        default=False,
         description="Whether the system creates synthetic text, images, audio, or video"
     )
     dual_use_risk: str = Field(
+        default="None",
         description="Potential for misuse: None, Low, Moderate, or High"
     )
     decision_reversible: str = Field(
+        default="Fully Reversible",
         description="Can decisions be undone: Fully Reversible, Reversible with Cost, Difficult to Reverse, or Irreversible"
     )
     protected_populations: list[str] = Field(
@@ -273,13 +284,6 @@ def parse_scenario_with_ai(
         )
 
         parsed_result = completion.choices[0].message.parsed
-        
-        # Debug logging
-        print(f"DEBUG - OpenAI returned object type: {type(parsed_result)}")
-        print(f"DEBUG - Has estimated_risk_tier: {hasattr(parsed_result, 'estimated_risk_tier')}")
-        if parsed_result:
-            print(f"DEBUG - Object dict: {parsed_result.model_dump() if hasattr(parsed_result, 'model_dump') else 'N/A'}")
-        
         return parsed_result
 
     except Exception as e:

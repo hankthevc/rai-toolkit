@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class WhenClause(BaseModel):
     """Conditional metadata describing when to recommend a control."""
 
+    # Core risk factors
     tier: Sequence[str] | None = None
     contains_pii: bool | None = None
     customer_facing: bool | None = None
@@ -19,8 +20,20 @@ class WhenClause(BaseModel):
     autonomy_at_least: int | None = Field(default=None, ge=0)
     sector: Sequence[str] | None = None
     modifiers: Sequence[str] | None = None
+    
+    # Extended risk factors (for advanced policy matching)
+    model_type: Sequence[str] | None = None
+    data_source: Sequence[str] | None = None
+    learns_in_production: bool | None = None
+    international_data: bool | None = None
+    explainability_level: Sequence[str] | None = None
+    uses_foundation_model: Sequence[str] | None = None
+    generates_synthetic_content: bool | None = None
+    dual_use_risk: Sequence[str] | None = None
+    decision_reversible: Sequence[str] | None = None
+    protected_populations: Sequence[str] | None = None
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
 
 
 class PolicyControl(BaseModel):
@@ -106,6 +119,7 @@ def control_matches(control: PolicyControl, scenario: ScenarioContext) -> bool:
 
     conditions = control.when
 
+    # Core risk factors
     if conditions.tier and scenario.tier not in conditions.tier:
         return False
 
@@ -127,6 +141,39 @@ def control_matches(control: PolicyControl, scenario: ScenarioContext) -> bool:
     if conditions.modifiers:
         scenario_modifiers = set(scenario.modifiers)
         if not scenario_modifiers.intersection(set(conditions.modifiers)):
+            return False
+
+    # Extended risk factors
+    if conditions.model_type and scenario.model_type not in conditions.model_type:
+        return False
+    
+    if conditions.data_source and scenario.data_source not in conditions.data_source:
+        return False
+    
+    if conditions.learns_in_production is not None and scenario.learns_in_production != conditions.learns_in_production:
+        return False
+    
+    if conditions.international_data is not None and scenario.international_data != conditions.international_data:
+        return False
+    
+    if conditions.explainability_level and scenario.explainability_level not in conditions.explainability_level:
+        return False
+    
+    if conditions.uses_foundation_model and scenario.uses_foundation_model not in conditions.uses_foundation_model:
+        return False
+    
+    if conditions.generates_synthetic_content is not None and scenario.generates_synthetic_content != conditions.generates_synthetic_content:
+        return False
+    
+    if conditions.dual_use_risk and scenario.dual_use_risk not in conditions.dual_use_risk:
+        return False
+    
+    if conditions.decision_reversible and scenario.decision_reversible not in conditions.decision_reversible:
+        return False
+    
+    if conditions.protected_populations:
+        scenario_populations = set(scenario.protected_populations)
+        if not scenario_populations.intersection(set(conditions.protected_populations)):
             return False
 
     return True
