@@ -165,15 +165,31 @@ def main():
             try:
                 import os
                 # Check multiple sources for API key: input field, Streamlit secrets, env var
-                api_key = api_key_input
+                # Priority: 1) User input field, 2) Streamlit secrets, 3) Environment variable
+                api_key = None
+                
+                # Check user input field first (strip whitespace)
+                if api_key_input and api_key_input.strip():
+                    api_key = api_key_input.strip()
+                    st.info("Using API key from input field...")
+                
+                # If no user input, check Streamlit secrets
                 if not api_key:
                     try:
                         api_key = st.secrets.get("OPENAI_API_KEY")
-                    except (KeyError, FileNotFoundError):
-                        api_key = os.getenv("OPENAI_API_KEY")
+                        if api_key:
+                            st.info("Using API key from Streamlit Cloud secrets...")
+                    except (KeyError, FileNotFoundError, AttributeError):
+                        pass
+                
+                # If still no key, check environment variable
+                if not api_key:
+                    api_key = os.getenv("OPENAI_API_KEY")
+                    if api_key:
+                        st.info("Using API key from environment variable...")
                 
                 if not api_key:
-                    st.error("⚠️ OpenAI API key required. Set it in Streamlit Cloud Secrets, environment variable, or enter above.")
+                    st.error("⚠️ OpenAI API key required. Please either:\n- Enter it in the field above, OR\n- Set it in Streamlit Cloud Settings → Secrets as `OPENAI_API_KEY`")
                 else:
                     analysis = parse_scenario_with_ai(quick_description, api_key=api_key)
                     if analysis:
@@ -181,11 +197,13 @@ def main():
                         st.session_state.show_ai_preview = True
                         st.success("✅ Analysis complete! Review suggestions below, then use them to fill the form.")
                     else:
-                        st.error("Analysis failed. Check your API key and description.")
+                        st.error("❌ Analysis failed. Please check your API key and try again.")
             except ImportError:
                 st.error("⚠️ OpenAI package not installed. Run: `pip install openai`")
             except Exception as e:
-                st.error(f"Analysis error: {e}")
+                st.error(f"❌ Analysis error: {str(e)}")
+                import traceback
+                st.code(traceback.format_exc())
 
     # Display AI analysis preview
     if st.session_state.show_ai_preview and st.session_state.ai_analysis:
