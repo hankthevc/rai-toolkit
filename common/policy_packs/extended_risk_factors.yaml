@@ -1,0 +1,161 @@
+name: Extended Risk Factors Pack
+version: 1.0.0
+description: Governance controls triggered by advanced risk factors (model type, data source, explainability, etc.)
+
+controls:
+  # LLM-specific controls
+  - id: OWASP-LLM01-EXTENDED
+    title: Prompt Injection Defense for LLMs
+    authority: OWASP LLM Top 10
+    clause: "LLM01: Prompt Injection"
+    description: Implement input validation, output encoding, and context isolation to prevent prompt injection attacks in generative AI systems.
+    evidence: "Adversarial testing reports, input sanitization logs"
+    tags: ["security", "llm", "owasp"]
+    mappings:
+      mitre_atlas: ["AML.T0051.002"]
+      nist_ai_rmf: ["MEASURE-2.7"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      model_type: ["Generative AI / LLM", "Multimodal"]
+
+  # Data provenance controls
+  - id: DATA-PROV-001
+    title: Internet-Scraped Data Governance
+    authority: NIST AI RMF
+    clause: "GOVERN-1.5, MAP-2.3"
+    description: Establish data quality controls, bias audits, and IP review for models trained on internet-scraped data due to copyright, bias amplification, and PII contamination risks.
+    evidence: "Data lineage documentation, bias audit reports, legal review of training data"
+    tags: ["data-governance", "bias", "copyright"]
+    mappings:
+      nist_ai_rmf: ["GOVERN-1.5", "MAP-2.3"]
+      iso_42001: ["7.4"]
+    when:
+      tier: ["High", "Critical"]
+      data_source: ["Internet-Scraped"]
+
+  # Online learning controls
+  - id: ONLINE-LEARN-001
+    title: Real-Time Learning Monitoring
+    authority: MITRE ATLAS
+    clause: "AML.T0018"
+    description: Implement continuous monitoring, anomaly detection, and rollback capabilities for models that learn from production data to prevent poisoning attacks and concept drift.
+    evidence: "Model performance metrics, drift detection logs, rollback procedures"
+    tags: ["ml-ops", "security", "monitoring"]
+    mappings:
+      mitre_atlas: ["AML.T0018"]
+      nist_ai_rmf: ["MANAGE-1.2", "MEASURE-2.3"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      learns_in_production: true
+
+  # Cross-border data controls
+  - id: GDPR-INTL-001
+    title: Cross-Border Data Transfer Safeguards
+    authority: GDPR
+    clause: "Articles 44-50"
+    description: Implement Standard Contractual Clauses (SCCs), adequacy assessments, and data sovereignty controls for international data transfers under Schrems II.
+    evidence: "SCCs, data transfer impact assessments, adequacy decision documentation"
+    tags: ["privacy", "gdpr", "international"]
+    mappings:
+      gdpr: ["Art. 44", "Art. 45", "Art. 46"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      international_data: true
+      contains_pii: true
+
+  # Explainability controls
+  - id: EXPLAIN-001
+    title: Black Box Model Explainability Requirements
+    authority: EU AI Act
+    clause: "Article 13"
+    description: Implement post-hoc explainability mechanisms (SHAP, LIME, attention visualization) for black box models to meet transparency obligations and enable incident investigation.
+    evidence: "Explainability reports, SHAP value visualizations, transparency documentation"
+    tags: ["explainability", "transparency", "compliance"]
+    mappings:
+      eu_ai_act: ["Art. 13"]
+      nist_ai_rmf: ["MANAGE-3.2"]
+      gdpr: ["Art. 22"]
+    when:
+      tier: ["High", "Critical"]
+      explainability_level: ["Black Box"]
+      high_stakes: true
+
+  # Foundation model / External API controls
+  - id: SUPPLY-CHAIN-001
+    title: External API Data Leakage Prevention
+    authority: NIST AI RMF
+    clause: "MAP-1.5"
+    description: Implement data filtering, PII redaction, and contractual safeguards when using external foundation model APIs (OpenAI, Anthropic) to prevent sensitive data leakage to third parties.
+    evidence: "API access logs, data filtering rules, vendor contracts, DPA agreements"
+    tags: ["supply-chain", "privacy", "vendor-management"]
+    mappings:
+      nist_ai_rmf: ["MAP-1.5", "GOVERN-3.2"]
+      iso_42001: ["8.3"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      uses_foundation_model: ["External API", "Hybrid"]
+      contains_pii: true
+
+  # Synthetic content controls
+  - id: SYNTHETIC-001
+    title: Synthetic Content Provenance & Watermarking
+    authority: EU AI Act
+    clause: "Article 52"
+    description: Implement content authentication (C2PA), watermarking, and disclosure requirements for AI-generated synthetic content to prevent deepfakes and misinformation.
+    evidence: "C2PA manifests, watermark validation logs, disclosure notices"
+    tags: ["synthetic-media", "transparency", "c2pa"]
+    mappings:
+      eu_ai_act: ["Art. 52"]
+      nist_ai_rmf: ["GOVERN-4.3"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      generates_synthetic_content: true
+      customer_facing: true
+
+  # Dual-use controls
+  - id: DUAL-USE-001
+    title: Dual-Use AI Export Controls
+    authority: US Export Administration Regulations
+    clause: "15 CFR 730-774 (EAR)"
+    description: Implement export control classification (ECCN), end-user screening, and license requirements for dual-use AI systems that could be weaponized or enable human rights abuses.
+    evidence: "ECCN classification, export licenses, end-user due diligence"
+    tags: ["export-control", "national-security", "dual-use"]
+    mappings:
+      omb_ai_policy: ["Section 5"]
+    when:
+      tier: ["High", "Critical"]
+      dual_use_risk: ["High"]
+
+  # Irreversible decision controls
+  - id: REVERSIBILITY-001
+    title: Irreversible Decision Human Oversight
+    authority: EU AI Act
+    clause: "Article 14"
+    description: Require mandatory human review, appeals process, and heightened accuracy thresholds for AI systems making irreversible decisions affecting fundamental rights.
+    evidence: "Human review logs, appeals process documentation, accuracy validation"
+    tags: ["human-oversight", "rights", "appeals"]
+    mappings:
+      eu_ai_act: ["Art. 14"]
+      nist_ai_rmf: ["MANAGE-2.3"]
+      gdpr: ["Art. 22"]
+    when:
+      tier: ["High", "Critical"]
+      decision_reversible: ["Irreversible", "Difficult to Reverse"]
+      high_stakes: true
+
+  # Protected populations controls
+  - id: PROTECT-POP-001
+    title: Vulnerable Population Enhanced Safeguards
+    authority: EU AI Act
+    clause: "Article 5, Recital 27"
+    description: Implement enhanced fairness testing, accessibility requirements, and civil rights compliance for AI systems affecting vulnerable populations (elderly, disabilities, immigrants, incarcerated).
+    evidence: "Fairness audits, accessibility testing (WCAG), disparate impact analysis"
+    tags: ["equity", "civil-rights", "accessibility"]
+    mappings:
+      eu_ai_act: ["Art. 5", "Recital 27"]
+      nist_ai_rmf: ["GOVERN-5.1"]
+    when:
+      tier: ["Medium", "High", "Critical"]
+      protected_populations: ["Elderly", "People with Disabilities", "Asylum Seekers / Immigrants", "Incarcerated Persons", "Healthcare Vulnerable"]
+      high_stakes: true
+

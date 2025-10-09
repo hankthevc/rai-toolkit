@@ -47,6 +47,16 @@ def _build_scenario_context(inputs: RiskInputs, tier: str) -> ScenarioContext:
         autonomy_level=inputs.autonomy_level,
         sector=inputs.sector,
         modifiers=list(inputs.modifiers),
+        model_type=inputs.model_type,
+        data_source=inputs.data_source,
+        learns_in_production=inputs.learns_in_production,
+        international_data=inputs.international_data,
+        explainability_level=inputs.explainability_level,
+        uses_foundation_model=inputs.uses_foundation_model,
+        generates_synthetic_content=inputs.generates_synthetic_content,
+        dual_use_risk=inputs.dual_use_risk,
+        decision_reversible=inputs.decision_reversible,
+        protected_populations=inputs.protected_populations,
     )
 
 
@@ -302,6 +312,103 @@ def main():
             help="Flag additional sensitivities that should raise safeguards.",
         )
 
+        # New risk factors section
+        with st.expander("🔬 Technical AI/ML Characteristics (Optional - Click to Expand)", expanded=False):
+            st.caption("These factors help assess architecture-specific risks and threat models.")
+            
+            model_type_options = ["Traditional ML", "Generative AI / LLM", "Computer Vision", "Multimodal", "Reinforcement Learning"]
+            model_type_index = model_type_options.index(suggested.model_type) if suggested and suggested.model_type in model_type_options else 0
+            model_type = st.selectbox(
+                "Model Architecture Type" + (" (✨ AI-suggested)" if suggested else ""),
+                options=model_type_options,
+                index=model_type_index,
+                help="LLMs have OWASP LLM risks; Computer Vision has deepfake/adversarial risks; etc."
+            )
+            
+            data_source_options = ["Proprietary/Internal", "Public Datasets", "Internet-Scraped", "User-Generated", "Third-Party/Vendor", "Synthetic"]
+            data_source_index = data_source_options.index(suggested.data_source) if suggested and suggested.data_source in data_source_options else 0
+            data_source = st.selectbox(
+                "Training Data Source" + (" (✨ AI-suggested)" if suggested else ""),
+                options=data_source_options,
+                index=data_source_index,
+                help="Internet-scraped = copyright/bias risks; User-generated = poisoning risk"
+            )
+            
+            learns_in_production = st.checkbox(
+                "Real-time learning (updates from production data)" + (" (✨ AI-suggested)" if suggested else ""),
+                value=suggested.learns_in_production if suggested else False,
+                help="Online learning = drift, poisoning, loss of reproducibility"
+            )
+
+        with st.expander("🌍 Privacy & Data Governance (Optional - Click to Expand)", expanded=False):
+            st.caption("Data sovereignty and explainability requirements.")
+            
+            international_data = st.checkbox(
+                "Cross-border data transfers" + (" (✨ AI-suggested)" if suggested else ""),
+                value=suggested.international_data if suggested else False,
+                help="GDPR adequacy decisions, Schrems II, data sovereignty concerns"
+            )
+            
+            explainability_options = ["Inherently Interpretable", "Post-hoc Explainable", "Limited Explainability", "Black Box"]
+            explainability_index = explainability_options.index(suggested.explainability_level) if suggested and suggested.explainability_level in explainability_options else 1
+            explainability_level = st.selectbox(
+                "Explainability Level" + (" (✨ AI-suggested)" if suggested else ""),
+                options=explainability_options,
+                index=explainability_index,
+                help="Black Box = GDPR Art. 22 compliance issues, harder to debug"
+            )
+
+        with st.expander("🔗 Supply Chain & Dependencies (Optional - Click to Expand)", expanded=False):
+            st.caption("Third-party model and data dependencies.")
+            
+            foundation_model_options = ["No Third-Party", "Self-Hosted Open Source", "Self-Hosted Proprietary", "External API", "Hybrid"]
+            foundation_model_index = foundation_model_options.index(suggested.uses_foundation_model) if suggested and suggested.uses_foundation_model in foundation_model_options else 0
+            uses_foundation_model = st.selectbox(
+                "Foundation Model Usage" + (" (✨ AI-suggested)" if suggested else ""),
+                options=foundation_model_options,
+                index=foundation_model_index,
+                help="External API = data leakage risk to OpenAI/Anthropic/etc."
+            )
+
+        with st.expander("⚠️ Content & Misuse Risks (Optional - Click to Expand)", expanded=False):
+            st.caption("Synthetic content generation and dual-use potential.")
+            
+            generates_synthetic_content = st.checkbox(
+                "Generates synthetic content (text/images/audio/video)" + (" (✨ AI-suggested)" if suggested else ""),
+                value=suggested.generates_synthetic_content if suggested else False,
+                help="Deepfakes, C2PA provenance requirements, EU AI Act Art. 52 transparency"
+            )
+            
+            dual_use_options = ["None", "Low", "Moderate", "High"]
+            dual_use_index = dual_use_options.index(suggested.dual_use_risk) if suggested and suggested.dual_use_risk in dual_use_options else 0
+            dual_use_risk = st.selectbox(
+                "Dual-Use / Weaponization Risk" + (" (✨ AI-suggested)" if suggested else ""),
+                options=dual_use_options,
+                index=dual_use_index,
+                help="High = export controls, misuse potential (bio research AI, cyber tools)"
+            )
+
+        with st.expander("⚖️ Rights & Equity (Optional - Click to Expand)", expanded=False):
+            st.caption("Decision reversibility and vulnerable populations.")
+            
+            reversibility_options = ["Fully Reversible", "Reversible with Cost", "Difficult to Reverse", "Irreversible"]
+            reversibility_index = reversibility_options.index(suggested.decision_reversible) if suggested and suggested.decision_reversible in reversibility_options else 0
+            decision_reversible = st.selectbox(
+                "Decision Reversibility" + (" (✨ AI-suggested)" if suggested else ""),
+                options=reversibility_options,
+                index=reversibility_index,
+                help="Irreversible decisions require highest safeguards (right to appeal)"
+            )
+            
+            protected_populations = st.multiselect(
+                "Protected / Vulnerable Populations" + (" (✨ AI-suggested)" if suggested else ""),
+                options=["Children", "Elderly", "People with Disabilities", "Low-Income / Unbanked", 
+                        "Non-Native Speakers / Low Literacy", "Asylum Seekers / Immigrants", 
+                        "Incarcerated Persons", "Healthcare Vulnerable"],
+                default=suggested.protected_populations if suggested else [],
+                help="Civil rights obligations (ADA, Fair Housing); EU AI Act prohibited uses"
+            )
+
         st.subheader("Approval Routing")
         owner = st.text_input("Scenario Owner", help="Person accountable for the assessment inputs.")
         approver = st.text_input("Approver", help="Leader confirming the safeguards before launch.")
@@ -321,6 +428,16 @@ def main():
         autonomy_level=autonomy_level,
         sector=sector,
         modifiers=list(modifiers),
+        model_type=model_type,
+        data_source=data_source,
+        learns_in_production=learns_in_production,
+        international_data=international_data,
+        explainability_level=explainability_level,
+        uses_foundation_model=uses_foundation_model,
+        generates_synthetic_content=generates_synthetic_content,
+        dual_use_risk=dual_use_risk,
+        decision_reversible=decision_reversible,
+        protected_populations=list(protected_populations),
     )
     assessment = calculate_risk_score(risk_inputs)
     scenario_context = _build_scenario_context(risk_inputs, assessment.tier)

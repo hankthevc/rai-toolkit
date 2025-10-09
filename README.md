@@ -83,7 +83,10 @@ If you are collaborating through the coding assistant's sandbox environment and 
 3. **[Framework Crosswalks](docs/crosswalks/)** (1 min skim) — How safeguards map to NIST AI RMF, EU AI Act, ISO 42001, OWASP LLM Top 10, MITRE ATLAS
 4. **Code deep-dive** (5 min) — [`common/utils/risk_engine.py`](common/utils/risk_engine.py) shows transparent scoring logic; [`common/policy_packs/`](common/policy_packs/) shows YAML-encoded safeguards with policy references
 
-**Skills on display:** Python (Streamlit, pytest), policy-as-code design, threat modeling, cross-functional communication (policy ↔ engineering), CI/CD (GitHub Actions).
+**Skills on display:** 
+- Python (Streamlit, pytest, Pydantic), policy-as-code design, threat modeling
+- **Comprehensive AI risk knowledge:** LLM threats (OWASP), adversarial ML (MITRE ATLAS), supply chain security, data provenance, explainability (GDPR), dual-use risks (export controls), protected populations (civil rights)
+- Cross-functional communication (policy ↔ engineering ↔ legal), CI/CD (GitHub Actions)
 
 ## Built with AI Coding Assistance
 
@@ -101,10 +104,16 @@ Now, the app uses AI to **autofill risk assessments** from plain-language descri
 
 ## How Project 1 Operates
 
-1. **AI-powered scenario parsing (NEW):** Paste a plain-language use case description → OpenAI API analyzes it → get suggested risk modifiers with reasoning → review and approve → auto-fill the form. Meta-governance: AI built this tool, now AI helps *you* assess AI.
-2. **Scenario intake:** Reviewers capture a plain-language description, the autonomy level, and flags such as PII or customer-facing exposure.
-3. **Risk scoring:** A transparent additive model converts the inputs into a tier (Low/Medium/High/Critical) that teams can defend in interviews and audit readouts.
-4. **Policy selection:** YAML policy packs encode safeguards from recognized frameworks (e.g., NIST AI RMF, EU AI Act). Conditions inside each control determine whether it applies to the submitted scenario.
+1. **AI-powered scenario parsing (NEW):** Paste a plain-language use case description → OpenAI API analyzes it against 20+ risk dimensions → get suggested values with reasoning → review and approve → auto-fill the form. Meta-governance: AI built this tool, now AI helps *you* assess AI.
+2. **Comprehensive risk assessment:** 16 risk factors across 5 categories:
+   - **Core:** PII, customer-facing, high-stakes, autonomy, sector, modifiers
+   - **Technical AI/ML:** Model type (LLM/CV/RL), data source, online learning
+   - **Privacy & governance:** Cross-border data, explainability level
+   - **Supply chain:** Foundation model dependencies (OpenAI API, self-hosted, etc.)
+   - **Content & misuse:** Synthetic content generation, dual-use risk
+   - **Rights & equity:** Decision reversibility, protected populations
+3. **Risk scoring:** A transparent additive model converts 16 inputs into a tier (Low/Medium/High/Critical) that teams can defend in interviews and audit readouts.
+4. **Policy selection:** YAML policy packs encode safeguards from recognized frameworks (NIST AI RMF, EU AI Act, OWASP LLM Top 10, MITRE ATLAS). Conditions match on risk tier, model type, data source, and more.
 5. **Decision Record export:** The Streamlit UI and shared exporter produce a Markdown file summarizing the risk tier, selected controls, and review ownership so the outcome can be filed in a ticketing system.
 
 Read the methodology deep dive in `docs/methodology_project1.md` for scoring rationale and governance trade-offs. A plain-language walkthrough of every file—written for early-career coders—is available in `docs/FILE_OVERVIEW.md`.
@@ -121,14 +130,42 @@ See [`docs/case_studies/`](docs/case_studies/) for detailed analyses of three re
 
 Stakeholders often ask how safeguards align with familiar standards. Use the illustrative briefs in `docs/crosswalks/` when tailoring communications for:
 
-- **NIST AI RMF** — Mapping governance-as-code safeguards to the Govern/Map/Measure/Manage functions.
-- **EU AI Act** — Showing how triage, documentation, and human oversight translate to Article 6 risk obligations.
-- **ISO/IEC 42001** — Framing controls in management system language for audit preparation.
-- **U.S. OMB AI Policy** — Explaining inventory, impact assessment, and accountability expectations for federal teams.
-- **OWASP LLM Top 10** — Connecting modifiers to security mitigations for application security audiences.
-- **MITRE ATLAS** — Linking safeguards to adversarial tactics for threat intelligence partners.
+- **NIST AI RMF** — Mapping governance-as-code safeguards to the Govern/Map/Measure/Manage functions. Extended risk factors support MAP-1.5 (supply chain), GOVERN-1.5 (data governance).
+- **EU AI Act** — Showing how triage, documentation, and human oversight translate to Article 6 risk obligations. New factors cover Annex III high-risk categories, Art. 52 (synthetic content transparency), Art. 13 (explainability).
+- **ISO/IEC 42001** — Framing controls in management system language for audit preparation. Data provenance and vendor management factors align with ISO requirements.
+- **U.S. OMB AI Policy** — Explaining inventory, impact assessment, and accountability expectations for federal teams. Protected populations support equity requirements.
+- **OWASP LLM Top 10** — LLM-specific risk factors trigger prompt injection, data leakage, and supply chain controls for generative AI systems.
+- **MITRE ATLAS** — Model type (CV, RL) and data source factors link to adversarial tactics (poisoning, evasion, exfiltration).
+- **GDPR** — Explainability level (Art. 22), cross-border data transfers (Art. 44-50), decision reversibility (right to appeal).
+- **Export Controls (EAR)** — Dual-use risk assessment for systems subject to export restrictions.
 
 Each crosswalk keeps the "illustrative" caveat front-and-center; confirm requirements with counsel or compliance before treating them as canonical.
+
+## Advanced Risk Factors
+
+The toolkit now assesses **16 risk dimensions** across AI security, privacy, supply chain, and equity domains:
+
+**Technical AI/ML Risks:**
+- Model architecture type (LLM → OWASP risks; Computer Vision → deepfakes; RL → reward hacking)
+- Training data provenance (Internet-scraped → copyright/bias; User-generated → poisoning)
+- Real-time learning (drift, poisoning, reproducibility loss)
+
+**Privacy & Data Governance:**
+- Cross-border data transfers (GDPR adequacy, Schrems II)
+- Explainability level (Black box → GDPR Art. 22 compliance issues)
+
+**Supply Chain & Dependencies:**
+- Foundation model usage (External API → data leakage to OpenAI/Anthropic)
+
+**Content & Misuse:**
+- Synthetic content generation (Deepfakes, C2PA provenance, EU AI Act Art. 52)
+- Dual-use risk (Export controls, weaponization potential)
+
+**Rights & Equity:**
+- Decision reversibility (Irreversible → mandatory human review, appeals process)
+- Protected populations (Elderly, disabilities, immigrants, incarcerated → enhanced safeguards)
+
+See `docs/PROPOSED_RISK_FACTORS.md` for detailed rationale and governance alignment.
 
 ## Architecture Sketch
 

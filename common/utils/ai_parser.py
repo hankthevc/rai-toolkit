@@ -20,6 +20,7 @@ except ImportError:
 class ScenarioAnalysis(BaseModel):
     """Structured output from AI scenario parsing."""
 
+    # Original factors
     contains_pii: bool = Field(
         description="Whether the scenario processes personal or sensitive data (PII, PHI, financial records, etc.)"
     )
@@ -41,6 +42,41 @@ class ScenarioAnalysis(BaseModel):
         default_factory=list,
         description="Scenario modifiers from: Bio, Cyber, Disinformation, Children"
     )
+    
+    # New risk factors
+    model_type: str = Field(
+        description="AI architecture: Traditional ML, Generative AI / LLM, Computer Vision, Multimodal, or Reinforcement Learning"
+    )
+    data_source: str = Field(
+        description="Training data source: Proprietary/Internal, Public Datasets, Internet-Scraped, User-Generated, Third-Party/Vendor, or Synthetic"
+    )
+    learns_in_production: bool = Field(
+        description="Whether the model updates/learns from production data (online learning)"
+    )
+    international_data: bool = Field(
+        description="Whether the system transfers personal data across international borders"
+    )
+    explainability_level: str = Field(
+        description="Model interpretability: Inherently Interpretable, Post-hoc Explainable, Limited Explainability, or Black Box"
+    )
+    uses_foundation_model: str = Field(
+        description="Third-party model usage: No Third-Party, Self-Hosted Open Source, Self-Hosted Proprietary, External API, or Hybrid"
+    )
+    generates_synthetic_content: bool = Field(
+        description="Whether the system creates synthetic text, images, audio, or video"
+    )
+    dual_use_risk: str = Field(
+        description="Potential for misuse: None, Low, Moderate, or High"
+    )
+    decision_reversible: str = Field(
+        description="Can decisions be undone: Fully Reversible, Reversible with Cost, Difficult to Reverse, or Irreversible"
+    )
+    protected_populations: list[str] = Field(
+        default_factory=list,
+        description="Vulnerable groups affected (from: Children, Elderly, People with Disabilities, Low-Income / Unbanked, Non-Native Speakers / Low Literacy, Asylum Seekers / Immigrants, Incarcerated Persons, Healthcare Vulnerable)"
+    )
+    
+    # AI analysis outputs
     reasoning: str = Field(
         description="Brief explanation of the analysis for transparency"
     )
@@ -60,53 +96,122 @@ class ScenarioAnalysis(BaseModel):
 
 SYSTEM_PROMPT = """You are an AI governance analyst helping assess AI system risks against established frameworks (NIST AI RMF, EU AI Act, ISO 42001, OWASP LLM Top 10, MITRE ATLAS, US OMB AI Policy).
 
-Given a plain-language description of an AI use case, analyze it comprehensively and provide risk assessment values plus governance recommendations.
+Analyze the use case comprehensively across 20+ risk dimensions and provide governance recommendations.
 
-**Field Definitions:**
+**CORE RISK FACTORS:**
 
-1. **contains_pii**: True if the system processes personal/sensitive data (PII, PHI, financial records, location data, etc.)
+1. **contains_pii**: True if processes personal/sensitive data (PII, PHI, financial records, location, biometrics)
 
-2. **customer_facing**: True if external users/customers directly interact with the AI system
+2. **customer_facing**: True if external users/customers directly interact with the system
 
 3. **high_stakes**: True if outcomes significantly impact safety, rights, or finances
    - Safety: physical harm, medical decisions, critical infrastructure
-   - Rights: employment, credit, legal proceedings, civil liberties
-   - Finances: significant monetary impact, fraud prevention, trading
+   - Rights: employment, credit, legal proceedings, civil liberties  
+   - Finances: significant monetary impact, fraud, trading
 
 4. **autonomy_level** (0-3):
-   - 0 (Suggestion only): AI provides recommendations, humans make all decisions (code completion, writing assistant)
-   - 1 (Human-in-loop): AI acts but humans review/approve before impact (resume screening with review, content moderation queue)
-   - 2 (Human oversight): AI acts autonomously with defined escalation rules (chatbot with escalation, fraud detection with thresholds)
-   - 3 (Full autonomy): AI makes and executes decisions without routine human review (automated trading, autonomous vehicles, real-time content filtering)
+   - 0: Suggestion only (code completion, writing assistant)
+   - 1: Human-in-loop (resume screening with review, content moderation queue)
+   - 2: Human oversight with escalation (chatbot, fraud detection with thresholds)
+   - 3: Full autonomy (automated trading, autonomous vehicles, real-time filtering)
 
-5. **sector**: Choose most relevant: General, Healthcare, Finance, Critical Infrastructure, Children
+5. **sector**: General, Healthcare, Finance, Critical Infrastructure, or Children
 
-6. **modifiers**: Select applicable flags from: Bio, Cyber, Disinformation, Children
-   - Bio: biological/health applications, pandemic response, biosecurity
-   - Cyber: cybersecurity operations, threat detection, vulnerability assessment
-   - Disinformation: content moderation, election integrity, synthetic media detection
-   - Children: systems primarily used by or affecting minors
+6. **modifiers**: Bio, Cyber, Disinformation, Children (select all that apply)
 
-7. **reasoning**: 2-3 sentences explaining your risk analysis
+**TECHNICAL AI/ML RISKS:**
 
-8. **estimated_risk_tier**: Your assessment: Low, Medium, High, or Critical
-   - Low (0-2 points): Internal tools, suggestion-only, no PII, human review
-   - Medium (3-5 points): Some PII or customer-facing, human oversight present
-   - High (6-8 points): Sensitive data + customer-facing, or automated decisions affecting rights/finances
-   - Critical (9+ points): High-stakes autonomous decisions, healthcare/finance with PII, children's safety
+7. **model_type**: Architecture determines threat model
+   - Traditional ML: classification, regression, clustering
+   - Generative AI / LLM: text/code generation (OWASP LLM risks)
+   - Computer Vision: image recognition (deepfakes, adversarial examples)
+   - Multimodal: text+image+audio (increased attack surface)
+   - Reinforcement Learning: autonomous agents (reward hacking)
 
-9. **key_risk_factors**: List 3-5 specific risks (e.g., "Automated medical decisions without physician review", "Processes PHI for vulnerable patients", "Model outputs could influence treatment plans")
+8. **data_source**: Training data provenance
+   - Proprietary/Internal: controlled curation
+   - Public Datasets: ImageNet, Common Crawl  
+   - Internet-Scraped: copyright/bias/PII risks
+   - User-Generated: poisoning risk
+   - Third-Party/Vendor: supply chain integrity
+   - Synthetic: AI-generated training data
 
-10. **recommended_safeguards**: List 5-7 specific controls that should apply, citing frameworks:
-    - Examples: "Human oversight for all prescription changes (NIST AI RMF GOVERN-1.2)", "Adversarial testing for prompt injection (OWASP LLM01)", "HIPAA compliance controls for PHI (EU AI Act Art. 10)", "Explainability for medical recommendations (ISO 42001)"
+9. **learns_in_production**: Boolean - does it update from production data?
+   - True: data poisoning, drift, loss of reproducibility
+   - False: static, auditable
 
-11. **framework_alignment**: Identify which governance frameworks are most relevant and why
-    - EU AI Act: Mention if High-Risk (Annex III: healthcare, employment, critical infrastructure, children)
-    - NIST AI RMF: Note which functions apply (GOVERN, MAP, MEASURE, MANAGE)
-    - OWASP LLM Top 10: Flag relevant vulnerabilities (prompt injection, data leakage, etc.)
-    - MITRE ATLAS: Note adversarial threats if applicable
+**PRIVACY & DATA GOVERNANCE:**
 
-Be conservative in risk assessment—when uncertain, err toward higher risk classification. Your analysis will be shown to users alongside the traditional scoring model."""
+10. **international_data**: Boolean - cross-border data transfers?
+    - True: GDPR adequacy, Schrems II, data sovereignty concerns
+
+11. **explainability_level**: Model interpretability
+    - Inherently Interpretable: linear models, decision trees
+    - Post-hoc Explainable: SHAP, LIME, attention viz
+    - Limited Explainability: complex ensembles
+    - Black Box: foundation models, proprietary APIs (GDPR Art. 22 risk)
+
+**SUPPLY CHAIN & DEPENDENCIES:**
+
+12. **uses_foundation_model**: Third-party model usage
+    - No Third-Party: fully in-house
+    - Self-Hosted Open Source: Llama, Mistral on own infrastructure
+    - Self-Hosted Proprietary: licensed models on-prem
+    - External API: OpenAI, Anthropic, Google (data leakage risk)
+    - Hybrid: RAG with external embeddings
+
+**CONTENT & MISUSE RISKS:**
+
+13. **generates_synthetic_content**: Boolean - creates text/images/audio/video?
+    - True: deepfake risk, C2PA provenance requirements, EU AI Act Art. 52
+
+14. **dual_use_risk**: Weaponization potential
+    - None: single benign purpose
+    - Low: minimal misuse potential
+    - Moderate: could be adapted for harm (facial recognition → surveillance)
+    - High: direct dual-use (bio research AI, cyber tools, persuasion systems)
+
+**RIGHTS & EQUITY:**
+
+15. **decision_reversible**: Can decisions be appealed/undone?
+    - Fully Reversible: no harm to undo (recommendations)
+    - Reversible with Cost: time/money to appeal (loan denial)
+    - Difficult to Reverse: significant harm (reputation damage)
+    - Irreversible: cannot undo (autonomous weapons, some medical interventions)
+
+16. **protected_populations**: Vulnerable groups (select all that apply)
+    - Children
+    - Elderly
+    - People with Disabilities
+    - Low-Income / Unbanked
+    - Non-Native Speakers / Low Literacy
+    - Asylum Seekers / Immigrants
+    - Incarcerated Persons
+    - Healthcare Vulnerable
+
+**AI ANALYSIS OUTPUTS:**
+
+17. **reasoning**: 2-3 sentences explaining your risk tier assessment
+
+18. **estimated_risk_tier**: Low, Medium, High, or Critical
+    - Consider cumulative effect of all factors above
+
+19. **key_risk_factors**: List 3-5 specific risks for THIS scenario
+
+20. **recommended_safeguards**: List 5-7 controls with framework citations
+    - Example: "Human oversight for prescription changes (NIST AI RMF GOVERN-1.2)"
+
+21. **framework_alignment**: Which standards apply and why
+    - EU AI Act Annex III (high-risk systems)
+    - NIST AI RMF functions (GOVERN/MAP/MEASURE/MANAGE)
+    - OWASP LLM Top 10 (if LLM)
+    - MITRE ATLAS (if adversarial threats)
+    - GDPR, ISO 42001, OMB M-24-10 as applicable
+
+**Instructions:**
+- Be conservative - err toward higher risk when uncertain
+- Consider interaction effects (e.g., LLM + customer-facing + healthcare = critical)
+- Your analysis will be shown alongside a traditional scoring model"""
 
 
 def parse_scenario_with_ai(

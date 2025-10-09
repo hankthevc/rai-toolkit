@@ -58,6 +58,7 @@ class PolicyPack(BaseModel):
 class ScenarioContext(BaseModel):
     """Scenario attributes used to evaluate policy controls."""
 
+    # Core risk assessment
     tier: str
     contains_pii: bool = False
     customer_facing: bool = False
@@ -65,8 +66,20 @@ class ScenarioContext(BaseModel):
     autonomy_level: int = Field(default=0, ge=0)
     sector: str = "General"
     modifiers: List[str] = Field(default_factory=list)
+    
+    # Extended risk factors (for policy matching)
+    model_type: str = "Traditional ML"
+    data_source: str = "Proprietary/Internal"
+    learns_in_production: bool = False
+    international_data: bool = False
+    explainability_level: str = "Post-hoc Explainable"
+    uses_foundation_model: str = "No Third-Party"
+    generates_synthetic_content: bool = False
+    dual_use_risk: str = "None"
+    decision_reversible: str = "Fully Reversible"
+    protected_populations: List[str] = Field(default_factory=list)
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", protected_namespaces=())
 
 
 def load_policy_pack(path: Path) -> PolicyPack:
