@@ -478,51 +478,60 @@ def main():
 
     controls = select_applicable_controls(packs, scenario_context)
 
-    # Show comparison if AI analysis was performed
-    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'estimated_risk_tier'):
-        st.markdown("---")
-        st.subheader("🔬 AI vs. Traditional Risk Assessment Comparison")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("### 🤖 AI Analysis")
-            ai_risk_icon = {
-                "Low": "🟢",
-                "Medium": "🟡",
-                "High": "🟠",
-                "Critical": "🔴"
-            }.get(st.session_state.ai_analysis.estimated_risk_tier, "⚪")
-            st.markdown(f"{ai_risk_icon} **{st.session_state.ai_analysis.estimated_risk_tier} Risk**")
-            st.caption("Based on natural language analysis against governance frameworks")
-        
-        with col2:
-            st.markdown("### 📊 Traditional Risk Engine")
-            trad_risk_icon = {
-                "Low": "🟢",
-                "Medium": "🟡",
-                "High": "🟠",
-                "Critical": "🔴"
-            }.get(assessment.tier, "⚪")
-            st.markdown(f"{trad_risk_icon} **{assessment.tier} Risk** (score: {assessment.score})")
-            st.caption("Based on weighted scoring model")
-        
-        # Show if they differ
-        if st.session_state.ai_analysis.estimated_risk_tier != assessment.tier:
-            st.warning(f"⚠️ **Risk tier mismatch:** AI assessed as {st.session_state.ai_analysis.estimated_risk_tier}, traditional engine as {assessment.tier}. Review both analyses carefully.")
-        else:
-            st.success(f"✅ **Agreement:** Both methods assess this as {assessment.tier} risk.")
-        
-        st.markdown("---")
+    # Generate unified governance assessment
+    st.markdown("---")
+    st.subheader("📋 Governance Assessment")
     
-    st.success(
-        f"Risk tier: **{assessment.tier}** (score {assessment.score})",
-        icon="📊",
-    )
-    if assessment.contributing_factors:
-        st.write("**Drivers:** " + ", ".join(assessment.contributing_factors))
+    # Build comprehensive prose assessment
+    risk_tier_icons = {
+        "Low": "🟢",
+        "Medium": "🟡",
+        "High": "🟠",
+        "Critical": "🔴"
+    }
+    risk_icon = risk_tier_icons.get(assessment.tier, "⚪")
+    
+    # Start with risk tier
+    st.markdown(f"### {risk_icon} Risk Classification: **{assessment.tier}**")
+    
+    # Build narrative assessment combining AI and traditional analysis
+    assessment_narrative = []
+    
+    # Include AI reasoning if available
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'estimated_risk_tier'):
+        ai_analysis = st.session_state.ai_analysis
+        assessment_narrative.append(f"**Analysis:** {ai_analysis.reasoning}")
+        
+        # Note if AI and traditional engine differ
+        if ai_analysis.estimated_risk_tier != assessment.tier:
+            assessment_narrative.append(f"\n*Note: Initial AI assessment suggested {ai_analysis.estimated_risk_tier} risk tier based on scenario description, while the formal scoring model yielded {assessment.tier} (score: {assessment.score}). This variance may indicate nuances worth reviewing with legal/compliance.*")
     else:
-        st.write("**Drivers:** No material risk drivers captured.")
+        # Traditional assessment only
+        assessment_narrative.append(f"**Risk Score:** {assessment.score} points across {len(assessment.contributing_factors)} factors.")
+    
+    # Contributing factors
+    if assessment.contributing_factors:
+        factors_text = ", ".join(assessment.contributing_factors)
+        assessment_narrative.append(f"\n**Key Risk Drivers:** {factors_text}")
+    
+    # Framework alignment (from AI if available)
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'framework_alignment'):
+        assessment_narrative.append(f"\n**Regulatory Frameworks Implicated:** {st.session_state.ai_analysis.framework_alignment}")
+    
+    # Key risk factors (from AI if available)
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'key_risk_factors') and st.session_state.ai_analysis.key_risk_factors:
+        risks_bullets = "\n".join([f"- {risk}" for risk in st.session_state.ai_analysis.key_risk_factors])
+        assessment_narrative.append(f"\n**Specific Risks Identified:**\n{risks_bullets}")
+    
+    # Render the full narrative
+    st.markdown("\n\n".join(assessment_narrative))
+    
+    # Recommended safeguards section
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'recommended_safeguards') and st.session_state.ai_analysis.recommended_safeguards:
+        st.markdown("\n**Recommended Governance Controls:**")
+        for i, safeguard in enumerate(st.session_state.ai_analysis.recommended_safeguards, 1):
+            st.markdown(f"{i}. {safeguard}")
+        st.caption("*These recommendations are derived from AI analysis of the scenario against established governance frameworks. Review the policy pack controls below for formal requirements.*")
 
     # Safeguards surface authority + clause so reviewers can trace each recommendation.
     st.subheader("Required Safeguards from Policy Packs")
@@ -570,8 +579,79 @@ def main():
 
     if use_case:
         st.markdown("---")
-        st.subheader("Scenario Narrative")
-        st.write(use_case)
+        st.subheader("📝 Governance Summary & Additional Context")
+        st.caption("Document the specific risks, regulations, and open questions that require legal/compliance review")
+        
+        # Generate a governance-focused summary
+        summary_sections = []
+        
+        # Original use case
+        summary_sections.append(f"**Use Case:** {use_case}")
+        
+        # Regulatory frameworks implicated
+        if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'framework_alignment'):
+            summary_sections.append(f"\n**Frameworks Implicated:** {st.session_state.ai_analysis.framework_alignment}")
+        
+        # Key risks from both analyses
+        all_risks = set()
+        if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'key_risk_factors'):
+            all_risks.update(st.session_state.ai_analysis.key_risk_factors)
+        if assessment.contributing_factors:
+            all_risks.update(assessment.contributing_factors)
+        
+        if all_risks:
+            risks_text = "\n".join([f"- {risk}" for risk in sorted(all_risks)])
+            summary_sections.append(f"\n**Risk Factors:**\n{risks_text}")
+        
+        # Sector-specific considerations
+        sector_considerations = {
+            "Healthcare": "HIPAA compliance, FDA medical device classification, patient safety protocols",
+            "Finance": "GLBA privacy requirements, fair lending (ECOA), model risk management (SR 11-7)",
+            "Critical Infrastructure": "CISA critical infrastructure designation, sector-specific regulations, supply chain security",
+            "Children": "COPPA compliance, enhanced consent mechanisms, age verification"
+        }
+        if sector in sector_considerations:
+            summary_sections.append(f"\n**Sector-Specific Considerations:** {sector_considerations[sector]}")
+        
+        # Questions for clarification
+        clarification_questions = []
+        
+        if contains_pii and international_data:
+            clarification_questions.append("- What data transfer mechanisms are used for international flows? (Standard Contractual Clauses, Adequacy Decisions, Binding Corporate Rules?)")
+        
+        if high_stakes and autonomy_level >= 2:
+            clarification_questions.append("- What human oversight mechanisms exist for high-stakes automated decisions?")
+            clarification_questions.append("- Is there an appeals process for affected individuals?")
+        
+        if uses_foundation_model != "No Third-Party":
+            clarification_questions.append("- What data is sent to external model providers? How is it protected?")
+            clarification_questions.append("- Do vendor contracts include AI-specific terms (data retention, model training prohibitions)?")
+        
+        if generates_synthetic_content:
+            clarification_questions.append("- Are synthetic outputs watermarked or labeled per EU AI Act Article 52 transparency requirements?")
+        
+        if sector == "Healthcare" or sector == "Finance":
+            clarification_questions.append(f"- Has this been reviewed by {sector} compliance team for sector-specific regulations?")
+        
+        if dual_use_risk in ["Moderate", "High"]:
+            clarification_questions.append("- Has export control classification been obtained? (EAR/ITAR applicability)")
+        
+        if protected_populations:
+            pop_text = ", ".join(protected_populations)
+            clarification_questions.append(f"- What accessibility accommodations exist for {pop_text}?")
+        
+        # Always ask about testing
+        clarification_questions.append("- Has bias/fairness testing been conducted? What metrics were used?")
+        clarification_questions.append("- What is the model performance baseline and monitoring plan?")
+        
+        if clarification_questions:
+            questions_text = "\n".join(clarification_questions)
+            summary_sections.append(f"\n**Questions for Legal/Compliance Review:**\n{questions_text}")
+        
+        # Render the complete summary
+        st.markdown("\n\n".join(summary_sections))
+        
+        st.info("💡 **Tip:** Use this summary to structure conversations with legal, privacy, security, and compliance partners before deployment.")
 
     st.markdown("---")
     _render_about_section()
