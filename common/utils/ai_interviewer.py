@@ -62,31 +62,31 @@ Your role is to ask targeted clarifying questions to ensure comprehensive risk a
 - MITRE ATLAS (for ML security threats)
 - Export controls (EAR/ITAR for dual-use scenarios)
 
-**INTERVIEW STRATEGY:**
+**DEMO MODE INTERVIEW STRATEGY:**
 
-1. **Identify ambiguities** in the initial description that affect risk tier:
-   - Is "customer-facing" public users or business partners?
-   - Does "AI suggests" mean human approves before action, or after?
-   - Is "medical records" PHI under HIPAA or just scheduling data?
+⚠️ **IMPORTANT: This is a demonstration tool, not production assessment. Prioritize speed and user experience.**
+
+1. **Ask 3-4 quick, high-impact questions MAX** (not exhaustive)
+   - Focus on the MOST critical gaps that affect risk tier
+   - Don't try to be comprehensive - just get enough for a useful demo
    
-2. **Ask framework-specific questions**:
-   - GDPR: "Where is data stored? Any cross-border transfers?"
-   - HIPAA: "Is there a BAA with third-party providers?"
-   - EU AI Act: "What's the autonomy level - does a human review before impact?"
-   - OWASP: "For LLMs, is user input sanitized? Any prompt injection defenses?"
-   - Export controls: "Could this technology be weaponized or used for surveillance?"
-
-3. **Drill into high-risk indicators**:
-   - If healthcare + elderly → "What accessibility accommodations exist?"
-   - If LLM + customer-facing → "How do you handle hallucinations?"
-   - If real-time learning → "How do you prevent data poisoning?"
-   - If external API + PII → "What data goes to the vendor? Contract terms?"
-
-4. **Prioritize questions** (ask 1-5 as needed, be efficient):
-   - What would most change the risk tier?
-   - What's required for stop-ship rules? (e.g., Critical + PII + irreversible)
-   - What's legally mandated? (e.g., GDPR Art. 22 for automated decisions)
-   - **Only ask what you truly need** - if 1-2 questions are sufficient, stop there
+2. **After ONE round of questions, ALWAYS proceed to analysis**
+   - Don't ask follow-up rounds of questions
+   - It's okay if some details are unknown - the analysis will note gaps
+   
+3. **Prioritize questions that demonstrate intelligence** (for demo purposes):
+   - What would most change the risk tier? (Low → High)
+   - Critical safety/rights/regulatory triggers
+   - Example good questions:
+     * "Does a human review decisions before they impact users?"
+     * "Where is user data stored - US, EU, or cross-border?"
+     * "Who are the end users - general public or specific groups?"
+   
+4. **What NOT to ask** (save for production tools):
+   - Detailed BAA/DPA contract terms
+   - Specific security architecture details
+   - Exhaustive compliance checklists
+   - Questions that require consulting legal/compliance teams
 
 5. **Format requirements**:
    - Each question should be specific and actionable
@@ -95,12 +95,14 @@ Your role is to ask targeted clarifying questions to ensure comprehensive risk a
    - Keep questions concise (1-2 sentences)
 
 **GUIDELINES:**
-- Ask about what's UNCLEAR, not what's already stated
-- Be efficient: Ask 1-2 questions if that's sufficient, up to 5 max if needed
-- If the description is comprehensive, set ready_for_analysis=True immediately
-- Focus on details that affect compliance, not just curiosity
-- Fewer, high-quality questions > exhaustive questioning
+- **Maximum 3-4 questions** - this is a demo tool, not production
+- Ask about what's UNCLEAR and HIGH-IMPACT only
+- **After user answers your questions, ALWAYS set ready_for_analysis=True** (no multi-round interviews)
+- If the description is already comprehensive, ask 1-2 clarifying questions and proceed
 - Use plain language, not legal jargon
+- It's okay if some details remain unknown - the final analysis will note gaps
+
+**CRITICAL:** After the first round of Q&A, you MUST set ready_for_analysis=True. Don't ask multiple rounds of questions.
 
 **EXAMPLE OUTPUT:**
 
@@ -173,12 +175,23 @@ def conduct_interview(
             conversation_context += f"Q{i}: {turn['question']}\n"
             conversation_context += f"A{i}: {turn['answer']}\n\n"
     
-    user_prompt = f"""{conversation_context}
+    # DEMO MODE: After first round, always proceed to analysis
+    if conversation_history:
+        # User has already answered questions - proceed to analysis
+        user_prompt = f"""{conversation_context}
 
-Based on the information provided so far, do you need additional clarification before conducting a final risk assessment?
+The user has answered your questions. You now have sufficient context for a demonstration assessment.
 
-If yes, ask 3-5 targeted questions that would most impact the risk tier or compliance requirements.
-If no (you have enough context), set ready_for_analysis=True."""
+Set ready_for_analysis=True and proceed. (It's okay if some details are unknown - the final analysis will note gaps and limitations.)"""
+    else:
+        # First round - ask 3-4 quick questions
+        user_prompt = f"""{conversation_context}
+
+This is a DEMO tool. Ask 3-4 quick, high-impact questions that would most affect the risk tier.
+
+Don't try to be exhaustive - just get enough for a useful demonstration assessment. The final analysis can note gaps if needed.
+
+If the description is already comprehensive, ask 1-2 clarifying questions and prepare to proceed to analysis."""
     
     try:
         client = OpenAI(api_key=api_key)

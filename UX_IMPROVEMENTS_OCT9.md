@@ -41,34 +41,56 @@
 - No manual form submission needed
 - Assessment appears automatically after interview completion
 
-### 4. Made Interview Flexible (1-5 Questions)
+### 4. Optimized for Fast Demo (3-4 Questions, One Round)
 **Before:**
-- AI always asked 3-5 questions
+- AI could ask multiple rounds of questions
+- Exhaustive information gathering
+- Users might get frustrated with lengthy interviews
 
 **After:**
-- AI can ask as few as 1 question if that's all that's needed
-- System prompt updated to prioritize efficiency
-- "Only ask what you truly need" guidance added
+- **Exactly one round** of 3-4 quick, high-impact questions
+- **Immediate analysis** after answers (no follow-up rounds)
+- System prompt emphasizes "demo mode" - prioritize speed
+- Gaps identified and user can optionally refine later
 
-### 5. Benefits
+### 5. Added Gaps & Re-Analysis Feature
+**NEW capability:**
+- AI identifies what it couldn't assess due to missing info
+- "🔬 Assessment Gaps & Additional Context" section shows specific unknowns
+- Examples: "Data storage location unknown - can't assess GDPR compliance"
+- User can click "📝 Provide Additional Details" to refine assessment
+- Re-analysis bypasses interview, goes straight to enriched analysis
+- **Progressive disclosure:** Fast demo first, comprehensive assessment if user wants it
+
+### 6. Benefits
 ✅ **Dramatically simpler UX:** No forms, no checkboxes, no dropdowns - just conversation  
 ✅ **More accessible:** Non-technical users can describe scenarios in plain language  
-✅ **Better analysis:** Multi-turn interview captures nuance missed by checkboxes  
-✅ **Faster workflow:** Assessment appears automatically after interview  
+✅ **Fast demo experience:** 2-3 minutes end-to-end (perfect for portfolio reviews)  
+✅ **Shows AI intelligence:** Asks smart follow-ups, acknowledges limitations  
+✅ **Progressive disclosure:** Quick assessment first, optional deep-dive if user has more details  
+✅ **Transparent about gaps:** Explicitly states what couldn't be assessed  
 ✅ **More professional:** No personal branding, focus on governance patterns  
 ✅ **Educational focus:** Clear disclaimers about sample/demonstrative use  
 
 ## Files Modified
 - `/project1_risk_framework/app.py` — Major refactor:
   - Removed entire manual "Scenario Inputs" form (160+ lines)
-  - Added `_render_risk_assessment_from_ai()` helper function
+  - Added `_render_risk_assessment_from_ai()` helper function (~350 lines)
   - Auto-triggers assessment after AI interview completion
+  - Added "🔬 Assessment Gaps & Additional Context" section
+  - Added re-analysis capability with enriched context
   - Removed API key input field
   - Simplified to single "Analyze" button
-- `/common/utils/ai_interviewer.py` — Updated system prompt:
-  - Changed from "ask 3-5 questions" to "ask 1-5 as needed"
-  - Added efficiency guidance: "only ask what you truly need"
-  - Encourages fewer, high-quality questions
+- `/common/utils/ai_interviewer.py` — Demo mode optimization:
+  - Changed to "3-4 questions MAX, one round only"
+  - Added "DEMO MODE" guidance in system prompt
+  - After first Q&A round, ALWAYS proceeds to analysis
+  - No multi-round interviews anymore
+  - Prioritizes speed over exhaustiveness
+- `/common/utils/ai_parser.py` — Added gaps tracking:
+  - New field: `gaps_and_limitations: list[str]`
+  - System prompt instructs AI to identify regulatory gaps
+  - Examples: GDPR unknowns, HIPAA BAA status, data location, etc.
 - `/README.md` — Updated setup instructions
 - `/INTERACTIVE_QA_FEATURE.md` — Updated user flow documentation
 - `/UX_IMPROVEMENTS_OCT9.md` — This changelog
@@ -81,24 +103,49 @@
 
 ## New User Flow
 
+### Fast Demo Path (2-3 minutes):
 1. **User describes use case** in plain language text box
 2. **Click "🔍 Analyze AI Use Case"**  
-3. **AI asks 1-5 clarifying questions** (as needed for comprehensive assessment)
+3. **AI asks 3-4 quick, high-impact questions** (one round only)
 4. **User answers questions** in text areas with rationale shown
-5. **AI produces comprehensive analysis** automatically
+5. **AI produces comprehensive analysis** immediately (no more question rounds!)
 6. **Risk assessment auto-generated** and displayed (no manual form!)
-7. **Interactive Q&A available** for follow-up questions
+7. **Gaps identified** if information was insufficient
+8. **Interactive Q&A available** for follow-up questions
+
+### Optional Refinement Path (if user has more details):
+9. **Review "🔬 Assessment Gaps & Additional Context"** section
+10. **Click "📝 Provide Additional Details"** button
+11. **Add specific information** to fill regulatory gaps
+12. **Click "🔄 Re-Analyze"** to get refined assessment with fewer/no gaps
 
 ## Testing Checklist
 - ✅ Framing panel updated with neutral language
 - ✅ Single "Analyze" button triggers interview mode
 - ✅ API key transparently loaded from secrets
-- ✅ Interview asks flexible number of questions (1-5)
+- ✅ Interview asks exactly 3-4 questions (one round only)
+- ✅ After answering questions, immediate analysis (no more rounds)
 - ✅ Removed "be specific..." admonition from answer fields
 - ✅ Manual form completely removed
 - ✅ Assessment auto-renders after interview completion
+- ✅ Gaps & limitations section appears if AI identifies unknowns
+- ✅ "Provide Additional Details" button shows refinement text area
+- ✅ Re-analysis with additional context works
+- ✅ Refined assessment has fewer/no gaps
 - ✅ Q&A chatbot works with auto-generated assessment
 - ✅ Download decision record works
 - ✅ All standards badges display correctly
 - ✅ No user-facing API key management required
+
+## Demo Flow Timing
+- **Fast path (minimal info):** ~2-3 minutes total
+  - 30s: Describe scenario
+  - 30s: AI generates 3-4 questions
+  - 60s: Answer questions
+  - 30s: Review assessment + identified gaps
+  
+- **Comprehensive path (with refinement):** ~4-5 minutes total
+  - 2-3 min: Fast path above
+  - 60s: Provide additional details
+  - 30s: Review refined assessment (fewer gaps)
 

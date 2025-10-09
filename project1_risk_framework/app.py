@@ -1450,6 +1450,70 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
                 use_container_width=True
             )
     
+    # Gaps & Limitations with Re-Analysis Option (NEW)
+    if hasattr(ai_analysis, 'gaps_and_limitations') and ai_analysis.gaps_and_limitations:
+        st.markdown("---")
+        st.subheader("🔬 Assessment Gaps & Additional Context")
+        
+        st.info("**This is a demonstration assessment based on limited information.** The following areas couldn't be fully evaluated:")
+        
+        for i, gap in enumerate(ai_analysis.gaps_and_limitations, 1):
+            st.markdown(f"{i}. {gap}")
+        
+        st.markdown("**💡 Want a more comprehensive assessment?**")
+        st.caption("If you have additional details about the items above, provide them below to refine the analysis.")
+        
+        # Initialize session state for additional context
+        if "show_refinement_box" not in st.session_state:
+            st.session_state.show_refinement_box = False
+        
+        if not st.session_state.show_refinement_box:
+            if st.button("📝 Provide Additional Details", use_container_width=True):
+                st.session_state.show_refinement_box = True
+                st.rerun()
+        else:
+            additional_context = st.text_area(
+                "Additional Details:",
+                placeholder="Example: 'Data is stored in AWS us-east-1. We have a BAA with AWS. Human clinicians review all medication suggestions before approval...'",
+                height=120,
+                key="additional_context_input"
+            )
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button("🔄 Re-Analyze with Additional Context", use_container_width=True, type="primary"):
+                    if additional_context and additional_context.strip():
+                        # Enrich the original description
+                        enriched_description = use_case + "\n\n**Additional Context Provided:**\n" + additional_context
+                        
+                        # Re-run analysis with enriched context (bypass interview, go straight to analysis)
+                        with st.spinner("Re-analyzing with additional context..."):
+                            try:
+                                api_key = None
+                                try:
+                                    api_key = st.secrets.get("OPENAI_API_KEY")
+                                except:
+                                    pass
+                                
+                                if api_key:
+                                    refined_analysis = parse_scenario_with_ai(enriched_description, api_key=api_key)
+                                    if refined_analysis:
+                                        # Update session state and re-render
+                                        st.session_state.ai_analysis = refined_analysis
+                                        st.session_state.show_refinement_box = False
+                                        st.success("✅ Analysis updated with additional context!")
+                                        st.rerun()
+                                else:
+                                    st.error("⚠️ OpenAI API key not configured.")
+                            except Exception as e:
+                                st.error(f"❌ Re-analysis failed: {str(e)}")
+                    else:
+                        st.warning("⚠️ Please provide additional details to re-analyze.")
+            with col2:
+                if st.button("Cancel", use_container_width=True):
+                    st.session_state.show_refinement_box = False
+                    st.rerun()
+    
     # Governance Summary & Additional Context
     st.markdown("---")
     st.subheader("📝 Governance Summary & Additional Context")

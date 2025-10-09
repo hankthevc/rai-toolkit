@@ -108,6 +108,10 @@ class ScenarioAnalysis(BaseModel):
         default="General AI governance frameworks apply",
         description="Which governance frameworks are most relevant (e.g., 'EU AI Act High-Risk', 'NIST AI RMF Govern functions', 'OWASP LLM risks')"
     )
+    gaps_and_limitations: list[str] = Field(
+        default_factory=list,
+        description="Specific regulatory/compliance areas that couldn't be fully assessed due to missing information. List what additional details would be needed for comprehensive assessment."
+    )
 
 
 SYSTEM_PROMPT = """You are an AI governance analyst helping assess AI system risks against established frameworks (NIST AI RMF, EU AI Act, ISO 42001, OWASP LLM Top 10, MITRE ATLAS, US OMB AI Policy).
@@ -227,7 +231,27 @@ Analyze the use case comprehensively across 20+ risk dimensions and provide gove
 **Instructions:**
 - Be conservative - err toward higher risk when uncertain
 - Consider interaction effects (e.g., LLM + customer-facing + healthcare = critical)
-- Your analysis will be shown alongside a traditional scoring model"""
+- Your analysis will be shown alongside a traditional scoring model
+
+**CRITICAL - Gaps & Limitations (NEW):**
+This is a DEMO tool, not production assessment. The user may not have provided complete information.
+
+**Populate `gaps_and_limitations` with specific unknowns that prevent full regulatory assessment:**
+
+Examples of gaps to identify:
+- "Data storage location unknown - can't assess GDPR/Schrems II cross-border transfer compliance"
+- "No information about BAA status - can't confirm HIPAA compliance for PHI processing"
+- "Vendor contract terms unknown - can't evaluate data sharing/DPA requirements"
+- "Human oversight details unclear - EU AI Act Art. 14 requirements may apply"
+- "Security architecture not described - can't assess MITRE ATLAS threat model applicability"
+- "Model training data lineage unknown - copyright/licensing risks unclear"
+
+**When to populate gaps_and_limitations:**
+- If you had to make assumptions due to missing details
+- If critical regulatory requirements can't be verified from description
+- If compliance assessment would require information not provided
+
+**Keep it specific and actionable** - tell the user exactly what additional info would help."""
 
 
 def parse_scenario_with_ai(
