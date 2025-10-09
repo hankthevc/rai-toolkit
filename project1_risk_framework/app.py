@@ -164,9 +164,16 @@ def main():
         with st.spinner("Analyzing scenario with AI..."):
             try:
                 import os
-                api_key = api_key_input or os.getenv("OPENAI_API_KEY")
+                # Check multiple sources for API key: input field, Streamlit secrets, env var
+                api_key = api_key_input
                 if not api_key:
-                    st.error("⚠️ OpenAI API key required. Set OPENAI_API_KEY environment variable or enter above.")
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
+                    except (KeyError, FileNotFoundError):
+                        api_key = os.getenv("OPENAI_API_KEY")
+                
+                if not api_key:
+                    st.error("⚠️ OpenAI API key required. Set it in Streamlit Cloud Secrets, environment variable, or enter above.")
                 else:
                     analysis = parse_scenario_with_ai(quick_description, api_key=api_key)
                     if analysis:
