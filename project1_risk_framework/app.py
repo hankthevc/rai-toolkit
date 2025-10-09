@@ -193,6 +193,12 @@ def main():
                 else:
                     analysis = parse_scenario_with_ai(quick_description, api_key=api_key)
                     if analysis:
+                        # Debug: Check what fields the analysis has
+                        st.write("DEBUG - Analysis fields:", dir(analysis))
+                        st.write("DEBUG - Has estimated_risk_tier?", hasattr(analysis, 'estimated_risk_tier'))
+                        if hasattr(analysis, 'estimated_risk_tier'):
+                            st.write("DEBUG - estimated_risk_tier value:", analysis.estimated_risk_tier)
+                        
                         st.session_state.ai_analysis = analysis
                         st.session_state.show_ai_preview = True
                         st.success("✅ Analysis complete! Review suggestions below, then use them to fill the form.")

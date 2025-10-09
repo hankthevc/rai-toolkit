@@ -272,11 +272,21 @@ def parse_scenario_with_ai(
             temperature=0.3,  # Lower temperature for more consistent risk assessment
         )
 
-        return completion.choices[0].message.parsed
+        parsed_result = completion.choices[0].message.parsed
+        
+        # Debug logging
+        print(f"DEBUG - OpenAI returned object type: {type(parsed_result)}")
+        print(f"DEBUG - Has estimated_risk_tier: {hasattr(parsed_result, 'estimated_risk_tier')}")
+        if parsed_result:
+            print(f"DEBUG - Object dict: {parsed_result.model_dump() if hasattr(parsed_result, 'model_dump') else 'N/A'}")
+        
+        return parsed_result
 
     except Exception as e:
         # Log the error but don't crash the app
         print(f"AI parsing failed: {e}")
+        import traceback
+        print(traceback.format_exc())
         return None
 
 
