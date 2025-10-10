@@ -410,6 +410,10 @@ def main():
     
     # Handle AI Analysis (automatically uses interview mode)
     if analyze_button and quick_description:
+        # Clear any previous refinement comparison
+        if "refinement_comparison" in st.session_state:
+            del st.session_state.refinement_comparison
+        
         with st.spinner("Analyzing your description and preparing questions..."):
             try:
                 # Get API key from Streamlit Cloud secrets
@@ -558,6 +562,39 @@ def main():
             st.markdown(f"#### Step 1: AI Initial Screening")
             st.markdown(f"### {risk_icon} Preliminary Assessment: **{analysis.estimated_risk_tier} Risk**")
             st.caption("*Based on AI analysis of scenario description*")
+            
+            # Show what changed if this is a refinement
+            if "refinement_comparison" in st.session_state:
+                comparison = st.session_state.refinement_comparison
+                
+                with st.container():
+                    st.markdown("---")
+                    st.markdown("#### 🔄 Analysis Updated with Additional Context")
+                    
+                    # Show resolved gaps
+                    if comparison["resolved_gaps"]:
+                        st.markdown("**✅ Gaps Addressed:**")
+                        for gap in comparison["resolved_gaps"]:
+                            st.markdown(f"- ~~{gap}~~")
+                    
+                    # Show tier change if applicable
+                    if comparison["tier_changed"]:
+                        tier_colors = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Critical": "🔴"}
+                        original_icon = tier_colors.get(comparison["original_tier"], "⚪")
+                        new_icon = tier_colors.get(comparison["new_tier"], "⚪")
+                        
+                        st.markdown(f"**📊 Risk Assessment Updated:**")
+                        st.markdown(f"{original_icon} {comparison['original_tier']} → {new_icon} **{comparison['new_tier']}**")
+                        st.caption("*The new information affected the risk calculus - see updated reasoning below*")
+                    else:
+                        st.markdown(f"**📊 Risk Tier:** {analysis.estimated_risk_tier} (unchanged)")
+                        if comparison["resolved_gaps"]:
+                            st.caption("*Risk tier remains the same, but gaps were resolved with additional context*")
+                    
+                    st.markdown("---")
+                
+                # Clear the comparison after showing it once
+                # (Actually don't clear - keep it so it shows on the page)
             
             # Show reasoning
             with st.expander("📋 View AI Analysis Details", expanded=True):
@@ -998,6 +1035,10 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode
             with col1:
                 if st.button("🔄 Re-Analyze with Additional Context", use_container_width=True, type="primary"):
                     if additional_context and additional_context.strip():
+                        # Store original analysis for comparison
+                        original_gaps = ai_analysis.gaps_and_limitations.copy()
+                        original_tier = ai_analysis.estimated_risk_tier
+                        
                         # Build enriched prompt with gap context
                         gaps_context = "\n\n**Previous Assessment Gaps:**\n" + "\n".join([f"- {gap}" for gap in ai_analysis.gaps_and_limitations])
                         enriched_description = (
@@ -1018,10 +1059,22 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode
                                 if api_key:
                                     refined_analysis = parse_scenario_with_ai(enriched_description, api_key=api_key, demo_mode=demo_mode)
                                     if refined_analysis:
+                                        # Compare and store what changed
+                                        resolved_gaps = [gap for gap in original_gaps if gap not in refined_analysis.gaps_and_limitations]
+                                        tier_changed = original_tier != refined_analysis.estimated_risk_tier
+                                        
+                                        comparison = {
+                                            "resolved_gaps": resolved_gaps,
+                                            "original_tier": original_tier,
+                                            "new_tier": refined_analysis.estimated_risk_tier,
+                                            "tier_changed": tier_changed,
+                                            "additional_context": additional_context
+                                        }
+                                        
                                         # Update session state and re-render
                                         st.session_state.ai_analysis = refined_analysis
+                                        st.session_state.refinement_comparison = comparison
                                         st.session_state.show_refinement_box = False
-                                        st.success("✅ Analysis updated with additional context!")
                                         st.rerun()
                                 else:
                                     st.error("⚠️ OpenAI API key not configured.")

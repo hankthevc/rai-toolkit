@@ -258,6 +258,7 @@ If you see "Previous Assessment Gaps:" in the input, the user is providing addit
 - ONLY list gaps that are still unresolved after considering the new information
 - If a gap is resolved, incorporate that information into your analysis and remove it from gaps_and_limitations
 - Update your risk assessment, reasoning, and recommendations based on the new information
+- **In your `reasoning` field, explicitly mention which gaps were addressed** and how the new information affected your analysis (e.g., "The additional context confirms HIPAA BAA compliance, which reduces regulatory risk..." or "Knowing the data is stored in AWS us-east-1 clarifies GDPR applicability...")
 
 **Keep it specific and actionable** - tell the user exactly what additional info would help."""
 
