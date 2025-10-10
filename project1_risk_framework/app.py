@@ -378,14 +378,14 @@ def main():
     if "quick_desc" not in st.session_state:
         st.session_state.quick_desc = ""
     
-        quick_description = st.text_area(
-            "📝 Describe your AI use case (see tips above for what to include)",
+    quick_description = st.text_area(
+        "📝 Describe your AI use case (see tips above for what to include)",
         value=st.session_state.quick_desc,
-            placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
-            height=140,
+        placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
+        height=140,
         key="quick_desc_input",
-            help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
-        )
+        help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
+    )
     
     # Single analyze button - automatically uses interview mode
     analyze_button = st.button("🔍 Analyze AI Use Case", use_container_width=True, type="primary", 
