@@ -335,6 +335,9 @@ def main():
     analyze_button = st.button("🔍 Analyze AI Use Case", use_container_width=True, type="primary", 
                                help="AI will ask clarifying questions for comprehensive risk assessment")
 
+    # DEBUG: Show button and text state
+    st.write(f"DEBUG - Button clicked: {analyze_button}, Text entered: {bool(quick_description)}, Text length: {len(quick_description) if quick_description else 0}")
+    
     # Handle AI Analysis (automatically uses interview mode)
     if analyze_button and quick_description:
         with st.spinner("Analyzing your description and preparing questions..."):
