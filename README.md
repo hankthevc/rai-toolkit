@@ -45,7 +45,7 @@ streamlit run project1_risk_framework/app.py
 
 The app launches at `http://localhost:8501`. Enter a scenario, flag contextual risk modifiers, and download the generated Decision Record to test the full workflow end-to-end.
 
-**For AI-Powered Analysis:** The live demo includes built-in AI capabilities. For local development, set your OpenAI API key:
+**AI Analysis (powered by OpenAI API):** The live demo uses AI to analyze scenarios and suggest risk factors. For local development, set your OpenAI API key:
 
 ```bash
 export OPENAI_API_KEY="sk-..."
@@ -84,7 +84,7 @@ Try the live app to:
 2. Click the badge above and authenticate with GitHub
 3. Select your fork: `your-username/rai-toolkit`
 4. Set main file path: `project1_risk_framework/app.py`
-5. (Optional) Add `OPENAI_API_KEY` secret in Streamlit Cloud settings for AI features
+5. Add `OPENAI_API_KEY` secret in Streamlit Cloud settings (required for AI analysis)
 6. Click "Deploy"
 
 **Option 2: Docker (Local or cloud)**
@@ -93,7 +93,7 @@ Try the live app to:
 # Build the image
 docker build -t rai-toolkit .
 
-# Run with OpenAI API key (for AI features)
+# Run with OpenAI API key (required for AI analysis)
 docker run -p 8501:8501 -e OPENAI_API_KEY=sk-... rai-toolkit
 
 # Access at http://localhost:8501
@@ -182,8 +182,9 @@ See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full CI confi
 
 **The live demo runs as a server-side Streamlit session with no database persistence.** Inputs exist only for the session and are discarded when it ends.
 
-**If you click AI analysis:**
-- Your text is sent to the configured AI provider (this demo uses the OpenAI API)
+**AI analysis (core feature):**
+- Your scenario descriptions are sent to OpenAI's API (gpt-4o-mini) for analysis
+- The AI suggests risk factors, which you can review and adjust
 - Risk calculations and policy matching happen server-side in the Streamlit session
 - Nothing is permanently stored
 
