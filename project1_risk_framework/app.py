@@ -998,8 +998,13 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode
             with col1:
                 if st.button("🔄 Re-Analyze with Additional Context", use_container_width=True, type="primary"):
                     if additional_context and additional_context.strip():
-                        # Enrich the original description
-                        enriched_description = use_case + "\n\n**Additional Context Provided:**\n" + additional_context
+                        # Build enriched prompt with gap context
+                        gaps_context = "\n\n**Previous Assessment Gaps:**\n" + "\n".join([f"- {gap}" for gap in ai_analysis.gaps_and_limitations])
+                        enriched_description = (
+                            use_case + 
+                            gaps_context + 
+                            "\n\n**Additional Context to Address Gaps:**\n" + additional_context
+                        )
                         
                         # Re-run analysis with enriched context (bypass interview, go straight to analysis)
                         with st.spinner("Re-analyzing with additional context..."):

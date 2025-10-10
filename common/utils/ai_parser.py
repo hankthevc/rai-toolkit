@@ -251,6 +251,14 @@ Examples of gaps to identify:
 - If critical regulatory requirements can't be verified from description
 - If compliance assessment would require information not provided
 
+**IMPORTANT - Re-Analysis with Additional Context:**
+If you see "Previous Assessment Gaps:" in the input, the user is providing additional context to fill those gaps.
+- Review the previous gaps carefully
+- Check if the "Additional Context to Address Gaps:" section resolves them
+- ONLY list gaps that are still unresolved after considering the new information
+- If a gap is resolved, incorporate that information into your analysis and remove it from gaps_and_limitations
+- Update your risk assessment, reasoning, and recommendations based on the new information
+
 **Keep it specific and actionable** - tell the user exactly what additional info would help."""
 
 
