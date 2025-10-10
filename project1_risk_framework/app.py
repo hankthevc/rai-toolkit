@@ -1279,7 +1279,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         approver="Pending Review",
     )
     
-    # Generate Transparency Note (RAIS T2 artifact)
+    # Generate Transparency Note (illustrative template)
     transparency_note = build_transparency_note(
         scenario=scenario_context,
         assessment=assessment,
@@ -1304,7 +1304,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
             file_name="transparency_note_stub.md",
             mime="text/markdown",
             use_container_width=True,
-            help="RAIS T2 artifact: Stakeholder communication template (requires completion)"
+            help="Illustrative template: Stakeholder communication (requires completion)"
         )
     
     # Owners & Next Steps
