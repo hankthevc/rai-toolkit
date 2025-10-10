@@ -1,12 +1,12 @@
 # Illustrative mapping to U.S. OMB AI policy memoranda. Coordinate with government affairs for authoritative references.
 name: "US OMB AI Policy (Illustrative)"
-version: "2024-01-30"
-description: "Public sector safeguards inspired by OMB M-24-10 and related memos."
+version: "2025-01-10"
+description: "Public sector safeguards inspired by OMB M-25-21 (replaces M-24-10, effective Jan 2025) and M-25-22 (acquisition, replaces M-24-18)."
 controls:
   - id: OMB-IMPACT-01
     title: "Impact assessment publication"
     description: "Publish an AI impact assessment summarizing purpose, risks, and mitigations."
-    authority: "OMB M-24-10"
+    authority: "OMB M-25-21"
     clause: "Section 5 (illustrative)"
     evidence: "Approved impact assessment with sign-off from privacy and civil rights officials."
     tags: [transparency, documentation]
@@ -16,7 +16,7 @@ controls:
   - id: OMB-REDTEAM-03
     title: "Independent red-team review"
     description: "Engage an independent testing function to exercise the system before launch."
-    authority: "OMB M-24-10"
+    authority: "OMB M-25-21"
     clause: "Section 7 (illustrative)"
     evidence: "Third-party review report with mitigation actions."
     tags: [testing, assurance]

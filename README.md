@@ -5,15 +5,17 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**Responsible AI governance-as-code.** Risk assessment, safeguards with policy citations, and exportable approval records—translating NIST AI RMF, EU AI Act, ISO 42001, OWASP LLM Top 10, and MITRE ATLAS into executable Python.
+**Responsible AI governance-as-code.** Risk assessment, safeguards with policy citations, and exportable approval records—translating NIST AI RMF, EU AI Act, ISO/IEC 42001, OWASP LLM Top 10, MITRE ATLAS, and U.S. federal AI policy (OMB M-25-21) into executable Python.
 
-**🚀 [Try the Live Demo](https://rai-toolkit.streamlit.app/)** — Assess AI scenarios and generate decision records in under 2 minutes.
+**🚀 [Try the Live Demo](https://rai-toolkit.streamlit.app/)** ⏰ *App may sleep after inactivity; wakes in 30-60s*
 
 **📄 [Portfolio Overview](PORTFOLIO.md)** — Detailed project walkthrough optimized for hiring managers and technical interviewers.
 
 ---
 
-The **Frontier AI Risk Assessment Framework** demonstrates how policy, security, and engineering teams can run an intake, score risk, and assign safeguards inside a single workflow. Every safeguard is backed by policy pack citations so compliance reviewers and threat analysts can trace each decision. Built by a former White House NSC policy advisor to show how governance can operate as code, not just documents.
+The **Frontier AI Risk Assessment Framework** demonstrates how policy, security, and engineering teams can run an intake, score risk, and assign safeguards inside a single workflow. Every safeguard is backed by policy pack citations so compliance reviewers and threat analysts can trace each decision.
+
+**Built with AI coding assistance** (Cursor/Claude) to prioritize governance logic; test-backed and CI-gated.
 
 ## Quickstart
 
@@ -29,10 +31,22 @@ streamlit run project1_risk_framework/app.py
 
 The app launches at `http://localhost:8501`. Enter a scenario, flag contextual risk modifiers, and download the generated Decision Record to test the full workflow end-to-end.
 
-**For AI-Powered Analysis:** The live demo includes built-in AI capabilities. For local development, set your OpenAI API key:
+**For AI-Powered Analysis:** The live demo includes built-in AI capabilities. For local development, choose your deployment model:
+
+**Option 1: OpenAI (default)**
 ```bash
 export OPENAI_API_KEY="sk-..."
 ```
+
+**Option 2: Azure OpenAI (recommended for enterprise)**
+```bash
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+export AZURE_OPENAI_API_KEY="your-key"
+export AZURE_OPENAI_DEPLOYMENT="gpt-4o"
+export AZURE_OPENAI_API_VERSION="2024-02-15-preview"
+```
+
+> **Enterprise deployments should use Azure OpenAI** for data residency, compliance controls, and enterprise SLAs. No data is stored server-side by this app; see [Data Handling](#data-handling--privacy) below.
 
 **Writing effective prompts for AI analysis:**
 - ✅ **Good:** "A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses their medical records to check medication history and insurance eligibility. Patients interact directly via web and mobile app. The system suggests appointment times but requires nurse approval for prescription refills."
@@ -59,17 +73,38 @@ Try the live app to:
 
 ### Deploy Your Own Instance
 
-Fork and deploy your own instance for free in under 5 minutes:
+**Option 1: Streamlit Cloud (Free, 1-click deploy)**
+
+[![Deploy to Streamlit Community Cloud](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy)
 
 1. Fork this repository to your GitHub account
-2. Visit [streamlit.io/cloud](https://streamlit.io/cloud) and sign up
-3. Click "New app" and select:
-   - Repository: `your-username/rai-toolkit`
-   - Branch: `main`
-   - Main file: `project1_risk_framework/app.py`
-4. Click "Deploy"
+2. Click the badge above and authenticate with GitHub
+3. Select your fork: `your-username/rai-toolkit`
+4. Set main file path: `project1_risk_framework/app.py`
+5. (Optional) Add `OPENAI_API_KEY` secret in Streamlit Cloud settings for AI features
+6. Click "Deploy"
 
-See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for detailed deployment guides (Docker, Heroku, AWS, etc.).
+**Option 2: Docker (Local or cloud)**
+
+```bash
+# Build the image
+docker build -t rai-toolkit .
+
+# Run with OpenAI API key (for AI features)
+docker run -p 8501:8501 -e OPENAI_API_KEY=sk-... rai-toolkit
+
+# Or with Azure OpenAI
+docker run -p 8501:8501 \
+  -e AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/ \
+  -e AZURE_OPENAI_API_KEY=your-key \
+  -e AZURE_OPENAI_DEPLOYMENT=gpt-4o \
+  -e AZURE_OPENAI_API_VERSION=2024-02-15-preview \
+  rai-toolkit
+
+# Access at http://localhost:8501
+```
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for detailed deployment guides (Kubernetes, Heroku, AWS ECS, etc.).
 
 ### Working from the hosted sandbox
 
@@ -90,14 +125,6 @@ If you are collaborating through the coding assistant's sandbox environment and 
 - **Comprehensive AI risk knowledge:** LLM threats (OWASP), adversarial ML (MITRE ATLAS), supply chain security, data provenance, explainability (GDPR), dual-use risks (export controls), protected populations (civil rights)
 - Cross-functional communication (policy ↔ engineering ↔ legal), CI/CD (GitHub Actions)
 
-## Built with AI Coding Assistance
-
-This entire project was **vibecoded**—built iteratively using AI coding assistants (Claude, Cursor) to rapidly prototype, debug, and refine. Rather than spending weeks on boilerplate, I focused on governance logic, threat modeling, and user experience while AI handled scaffolding, test generation, and documentation formatting.
-
-**Why this matters for hiring:**
-- **Experimental mindset:** I treat AI as a force-multiplier, not a replacement—using it to explore ideas faster and iterate on feedback loops
-- **Maximizing frontier capabilities:** Just as I design red-team frameworks for frontier AI at 2430 Group, I leverage frontier AI for my own workflows
-- **Transparent about tooling:** Modern security/governance work requires understanding AI's capabilities and limitations firsthand; building with AI teaches both
 - **Outcome-focused:** 6 policy frameworks, 60+ safeguards, 3 case studies, full CI/CD—shipped in days, not months
 
 **The workflow:** Plain-language intent → AI generates scaffolding → I refine logic/policy accuracy → AI writes tests/docs → iterate. This is how governance-as-code should operate: rapid experimentation, transparent decision logic, and continuous validation.
@@ -156,20 +183,42 @@ pytest tests/ -k "not integration"    # Skip tests requiring API keys
 
 See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full CI configuration.
 
+## Data Handling & Privacy
+
+**No sensitive data stored.** Assessment text exists only in browser memory during your session. Nothing is persisted to a database.
+
+**AI analysis data flow:**
+- Your scenario descriptions and interview answers are sent to OpenAI's API (or Azure OpenAI if configured) for analysis
+- Risk calculations, policy matching, and decision record generation happen locally in your browser
+- No assessment data is logged or retained by this application
+
+**Enterprise privacy controls:**
+- Use Azure OpenAI for data residency and compliance guarantees (recommended for production)
+- Run locally (no external API calls except when using AI analysis feature)
+- For air-gapped environments: disable AI analysis and use manual form input only
+
+**Security.md:** See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and support windows. This application is a demonstration tool; validate with legal/privacy teams before processing actual sensitive data.
+
 ## Framework Crosswalks
 
 Stakeholders often ask how safeguards align with familiar standards. Use the illustrative briefs in `docs/crosswalks/` when tailoring communications for:
 
-- **NIST AI RMF** — Mapping governance-as-code safeguards to the Govern/Map/Measure/Manage functions. Extended risk factors support MAP-1.5 (supply chain), GOVERN-1.5 (data governance).
-- **EU AI Act** — Showing how triage, documentation, and human oversight translate to Article 6 risk obligations. New factors cover Annex III high-risk categories, Art. 52 (synthetic content transparency), Art. 13 (explainability).
-- **ISO/IEC 42001** — Framing controls in management system language for audit preparation. Data provenance and vendor management factors align with ISO requirements.
-- **U.S. OMB AI Policy** — Explaining inventory, impact assessment, and accountability expectations for federal teams. Protected populations support equity requirements.
-- **OWASP LLM Top 10** — LLM-specific risk factors trigger prompt injection, data leakage, and supply chain controls for generative AI systems.
-- **MITRE ATLAS** — Model type (CV, RL) and data source factors link to adversarial tactics (poisoning, evasion, exfiltration).
-- **GDPR** — Explainability level (Art. 22), cross-border data transfers (Art. 44-50), decision reversibility (right to appeal).
-- **Export Controls (EAR)** — Dual-use risk assessment for systems subject to export restrictions.
+### Policy Frameworks
 
-Each crosswalk keeps the "illustrative" caveat front-and-center; confirm requirements with counsel or compliance before treating them as canonical.
+| Framework | Alignment | Key Artifacts Generated |
+|-----------|-----------|------------------------|
+| **[Microsoft RAIS](docs/crosswalks/microsoft_rais.md)** | A1 (Impact Assessment), A2 (Sensitive Use Triage), A3 (Fit for Purpose), T2 (Transparency Note), PS1/PS2 (Privacy/Security) | Decision Record, Transparency Note stub, Risk Log |
+| **NIST AI RMF** | Govern/Map/Measure/Manage functions. Supports MAP-1.5 (supply chain), GOVERN-1.5 (data governance), NIST GenAI Profile risk areas | Risk assessment, policy pack controls |
+| **EU AI Act** | Annex III high-risk categories, Art. 52 (synthetic content transparency), Art. 13 (explainability). See [Official Journal L 178/2024](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) | Conformity documentation patterns |
+| **ISO/IEC 42001** | AIMS documentation patterns (risk log, transparency note, decision record) | Decision Record aligned to ISO audit expectations |
+| **U.S. OMB M-25-21** | Federal AI inventory, impact assessment, rights protection (replaces M-24-10 effective Jan 2025). Acquisition: M-25-22 (replaces M-24-18) | Impact assessment, rights-impact documentation |
+| **OWASP LLM Top 10 (2025)** | Prompt injection (LLM01), data leakage (LLM06), supply chain (LLM05). See [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/) | LLM-specific safeguards for generative AI |
+| **MITRE ATLAS** | Adversarial tactics (poisoning, evasion, exfiltration) mapped to model types | Threat model considerations |
+| **GDPR** | Art. 22 (explainability), Art. 44-50 (cross-border transfers), right to appeal | Data protection impact assessment inputs |
+
+**Important:** All cross walk briefs are illustrative examples based on publicly available framework texts. They are **not** authoritative legal interpretations. Confirm requirements with counsel or compliance before treating them as canonical.
+
+**Note on RAIS:** This tool demonstrates alignment patterns from the [published Microsoft RAIS goals](https://www.microsoft.com/en-us/ai/responsible-ai). It does not replicate internal Microsoft assessment processes or checklists.
 
 ## Advanced Risk Factors
 
@@ -236,16 +285,18 @@ Potential vulnerabilities should be reported privately following the instruction
 - **Testing:** CI/CD pipeline with automated policy pack validation and risk tier tests
 - **Next steps:** Gather feedback from AI governance practitioners, explore Project 2 (continuous monitoring)
 
-## About Henry
-
-I'm an AI security strategist and former White House NSC policy advisor who translates frontier‑tech risk into executive action. I've built cross‑government coalitions (12 agencies, 30+ international partners) against spyware, run intelligence downgrades that protected U.S. elections, and now design red‑team frameworks for frontier systems at 2430 Group. 
-
-I built this RAI Toolkit to demonstrate governance‑as‑code in practice: quick risk triage, safeguards with policy citations, and exportable decision records that bridge policy, security, and engineering teams.
-
-**Connect:** [henryappel@gmail.com](mailto:henryappel@gmail.com) | Washington, DC
-
-**Background:** West Wing aide & intelligence policy advisor at the NSC (2023–2024); IC analyst/operator at ODNI/NCTC (2018–2025) across PRC/DPRK cyber, ransomware, spyware, and illicit tech transfers; M.A. Security Studies, Georgetown.
-
 ## Contact
 
 Questions about responsible use or potential improvements can be raised via issues. Sensitive disclosures should follow the contact guidance in `SECURITY.md`.
+
+---
+
+## About the Author
+
+**Henry Appel** — AI security strategist and former White House NSC policy advisor. I've built cross‑government coalitions (12 agencies, 30+ international partners) against spyware, run intelligence downgrades that protected U.S. elections, and now design red‑team frameworks for frontier systems at 2430 Group.
+
+I built this RAI Toolkit to demonstrate governance‑as‑code in practice: quick risk triage, safeguards with policy citations, and exportable decision records that bridge policy, security, and engineering teams.
+
+**Background:** West Wing aide & intelligence policy advisor at the NSC (2023–2024); IC analyst/operator at ODNI/NCTC (2018–2025) across PRC/DPRK cyber, ransomware, spyware, and illicit tech transfers; M.A. Security Studies, Georgetown.
+
+**Connect:** [henryappel@gmail.com](mailto:henryappel@gmail.com) | Washington, DC

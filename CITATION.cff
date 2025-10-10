@@ -1,0 +1,70 @@
+cff-version: 1.2.0
+message: "If you use this toolkit in your work, please cite it as below."
+title: "RAI Toolkit: Responsible AI Governance-as-Code"
+abstract: "A demonstration framework for AI risk assessment, policy-backed safeguards, and exportable decision records. Translates NIST AI RMF, EU AI Act, ISO/IEC 42001, OWASP LLM Top 10, MITRE ATLAS, and U.S. federal AI policy into executable Python. Includes Microsoft RAIS alignment, transparency note generation, and AI-powered scenario parsing."
+authors:
+  - family-names: "Appel"
+    given-names: "Henry"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # Update with actual ORCID if available
+url: "https://github.com/hankthevc/rai-toolkit"
+repository-code: "https://github.com/hankthevc/rai-toolkit"
+license: MIT
+version: 1.0.0
+date-released: 2025-01-10
+keywords:
+  - responsible-ai
+  - ai-governance
+  - risk-assessment
+  - policy-as-code
+  - nist-ai-rmf
+  - eu-ai-act
+  - iso-42001
+  - owasp-llm-top-10
+  - mitre-atlas
+  - microsoft-rais
+  - governance-as-code
+  - ai-policy
+  - streamlit
+  - python
+references:
+  - type: software
+    title: "Streamlit"
+    authors:
+      - name: "Streamlit Inc."
+    url: "https://streamlit.io"
+  - type: standard
+    title: "NIST AI Risk Management Framework"
+    authors:
+      - name: "National Institute of Standards and Technology"
+    url: "https://www.nist.gov/itl/ai-risk-management-framework"
+  - type: standard
+    title: "EU AI Act"
+    authors:
+      - name: "European Union"
+    url: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689"
+  - type: standard
+    title: "ISO/IEC 42001:2023 Artificial Intelligence Management System"
+    authors:
+      - name: "International Organization for Standardization"
+    url: "https://www.iso.org/standard/81230.html"
+  - type: standard
+    title: "OWASP Top 10 for Large Language Model Applications"
+    authors:
+      - name: "OWASP Foundation"
+    url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+  - type: standard
+    title: "MITRE ATLAS (Adversarial Threat Landscape for AI Systems)"
+    authors:
+      - name: "MITRE Corporation"
+    url: "https://atlas.mitre.org/"
+  - type: policy
+    title: "Microsoft Responsible AI Standard (RAIS)"
+    authors:
+      - name: "Microsoft Corporation"
+    url: "https://www.microsoft.com/en-us/ai/responsible-ai"
+  - type: policy
+    title: "OMB M-25-21: Advancing the Responsible Acquisition, Development, and Use of Artificial Intelligence"
+    authors:
+      - name: "U.S. Office of Management and Budget"
+    url: "https://www.whitehouse.gov/omb/briefing-room/"
+

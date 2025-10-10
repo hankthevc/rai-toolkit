@@ -23,6 +23,7 @@ from common.utils.ai_interviewer import (
     format_interview_questions,
 )
 from common.utils.exporters import build_decision_record
+from common.utils.exporters_transparency_note import build_transparency_note
 from common.utils.policy_loader import (
     ScenarioContext,
     load_policy_packs,
@@ -850,14 +851,34 @@ def main():
         owner=owner,
         approver=approver,
     )
-
-    st.download_button(
-        label="Download Decision Record (.md)",
-        data=record,
-        file_name="frontier_ai_decision_record.md",
-        mime="text/markdown",
-        use_container_width=True,
+    
+    # Generate Transparency Note (RAIS T2 artifact)
+    transparency_note = build_transparency_note(
+        scenario=scenario_context,
+        assessment=assessment,
+        controls=controls,
     )
+
+    # Download buttons in columns
+    col_dr, col_tn = st.columns(2)
+    with col_dr:
+        st.download_button(
+            label="📄 Download Decision Record",
+            data=record,
+            file_name="frontier_ai_decision_record.md",
+            mime="text/markdown",
+            use_container_width=True,
+            help="Complete risk assessment with safeguards and approval signatures"
+        )
+    with col_tn:
+        st.download_button(
+            label="📋 Download Transparency Note (stub)",
+            data=transparency_note,
+            file_name="transparency_note_stub.md",
+            mime="text/markdown",
+            use_container_width=True,
+            help="RAIS T2 artifact: Stakeholder communication template (requires completion)"
+        )
     
     # Owners & Next Steps
     st.markdown("---")
@@ -1258,13 +1279,33 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         approver="Pending Review",
     )
     
-    st.download_button(
-        label="Download Decision Record (.md)",
-        data=record,
-        file_name="frontier_ai_decision_record.md",
-        mime="text/markdown",
-        use_container_width=True,
+    # Generate Transparency Note (RAIS T2 artifact)
+    transparency_note = build_transparency_note(
+        scenario=scenario_context,
+        assessment=assessment,
+        controls=controls,
     )
+    
+    # Download buttons in columns
+    col_dr, col_tn = st.columns(2)
+    with col_dr:
+        st.download_button(
+            label="📄 Download Decision Record",
+            data=record,
+            file_name="frontier_ai_decision_record.md",
+            mime="text/markdown",
+            use_container_width=True,
+            help="Complete risk assessment with safeguards and approval signatures"
+        )
+    with col_tn:
+        st.download_button(
+            label="📋 Download Transparency Note (stub)",
+            data=transparency_note,
+            file_name="transparency_note_stub.md",
+            mime="text/markdown",
+            use_container_width=True,
+            help="RAIS T2 artifact: Stakeholder communication template (requires completion)"
+        )
     
     # Owners & Next Steps
     st.markdown("---")

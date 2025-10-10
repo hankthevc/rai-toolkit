@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Documentation (keep essential docs, skip heavy ones)
+docs/LEARNING_JOURNAL.md
+stress_artifacts/
+debug_no_textarea.png
+
+# Temporary files
+*.tmp
+*.bak
+.DS_Store
+

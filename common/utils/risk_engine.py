@@ -232,3 +232,71 @@ def determine_risk_tier(score: int) -> str:
     if score <= 8:
         return "High"
     return "Critical"
+
+
+def check_sensitive_use_gating(inputs: RiskInputs, assessment: RiskAssessment) -> Dict[str, any]:
+    """
+    Illustrative RAIS-style sensitive use gating (A2: Sensitive or Restricted Use Triage).
+    
+    This is a demonstration of how to implement escalation gates for high-risk AI systems.
+    Real implementations should be validated with legal, compliance, and executive leadership.
+    
+    Args:
+        inputs: The risk input scenario
+        assessment: The calculated risk assessment
+        
+    Returns:
+        Dict with keys: requires_escalation (bool), escalation_reason (str), approval_level (str)
+    """
+    
+    escalation_flags = []
+    approval_level = "Standard Approval"
+    
+    # Critical tier + sensitive modifiers = Executive review
+    if assessment.tier == "Critical":
+        if "Bio" in inputs.modifiers or "Cyber" in inputs.modifiers:
+            escalation_flags.append("Critical tier system with Bio/Cyber implications")
+            approval_level = "Executive + Legal Sign-Off"
+    
+    # Biometric identification + real-time classification = Restricted use
+    # (EU AI Act Annex III, Article 5 considerations)
+    biometric_keywords = ["biometric", "facial recognition", "emotion recognition", "gait analysis"]
+    if inputs.customer_facing and inputs.high_stakes:
+        # Check modifiers for biometric indicators (simplified for demo)
+        if any(keyword in str(inputs.modifiers).lower() for keyword in biometric_keywords):
+            escalation_flags.append("Biometric identification in customer-facing, high-stakes context")
+            approval_level = "Restricted Use Review + Legal Sign-Off"
+    
+    # Real-time behavioral monitoring of protected populations
+    if inputs.protected_populations and inputs.autonomy_level >= 2:
+        if "Children" in inputs.protected_populations or "Elderly" in inputs.protected_populations:
+            escalation_flags.append("Automated decisions affecting protected populations (children/elderly)")
+            approval_level = "Privacy + Civil Rights Review"
+    
+    # Irreversible decisions at high stakes
+    if inputs.decision_reversible == "Irreversible" and inputs.high_stakes:
+        escalation_flags.append("Irreversible high-stakes decisions (e.g., medical diagnosis, employment termination)")
+        approval_level = "Executive + Legal + Ethics Review"
+    
+    # Dual-use risk at Critical tier
+    if inputs.dual_use_risk in ["High (Weaponization)", "Export Control"]:
+        if assessment.tier in ["High", "Critical"]:
+            escalation_flags.append(f"Dual-use risk: {inputs.dual_use_risk}")
+            approval_level = "National Security + Legal Review"
+    
+    # Generative AI producing synthetic content at scale
+    if inputs.model_type == "Generative AI / LLM" and inputs.generates_synthetic_content:
+        if inputs.customer_facing and inputs.autonomy_level >= 2:
+            escalation_flags.append("Generative AI producing synthetic content for external users without human review")
+            approval_level = "Misinformation Risk Review + Legal"
+    
+    # Determine if escalation is required
+    requires_escalation = len(escalation_flags) > 0
+    escalation_reason = "; ".join(escalation_flags) if escalation_flags else "No sensitive use patterns detected"
+    
+    return {
+        "requires_escalation": requires_escalation,
+        "escalation_reason": escalation_reason,
+        "approval_level": approval_level,
+        "escalation_flags": escalation_flags
+    }
