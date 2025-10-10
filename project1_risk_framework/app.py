@@ -583,27 +583,6 @@ def main():
                     st.markdown(f"{i}. {safeguard}")
                 st.caption("*Note: The traditional risk engine below will also apply safeguards based on policy packs. Compare both sets of recommendations.*")
             
-            # Show form values
-            with st.expander("📝 Form Auto-Fill Values", expanded=False):
-                autonomy_labels = {
-                    0: "Suggestion only",
-                    1: "Human-in-the-loop",
-                    2: "Human oversight",
-                    3: "Full autonomy"
-                }
-                st.markdown(f"""
-                These values will auto-fill the form below:
-                
-                - **PII/Sensitive Data:** {"Yes" if analysis.contains_pii else "No"}
-                - **Customer-Facing:** {"Yes" if analysis.customer_facing else "No"}
-                - **High-Stakes:** {"Yes" if analysis.high_stakes else "No"}
-                - **Autonomy Level:** {analysis.autonomy_level} ({autonomy_labels.get(analysis.autonomy_level, "Unknown")})
-                - **Sector:** {analysis.sector}
-                - **Modifiers:** {", ".join(analysis.modifiers) if analysis.modifiers else "None"}
-                
-                *Scroll down to review the form. You can override any suggested values.*
-                """)
-            
             # Automatically trigger risk assessment from AI analysis
             st.markdown("---")
             _render_risk_assessment_from_ai(st.session_state.ai_analysis, quick_description, packs, demo_mode)
