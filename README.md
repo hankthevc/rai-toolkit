@@ -5,7 +5,7 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**Responsible AI governance-as-code.** Risk assessment, safeguards with policy citations, and exportable approval records—translating NIST AI RMF, EU AI Act, ISO/IEC 42001, OWASP LLM Top 10, MITRE ATLAS, and U.S. federal AI policy (OMB M-25-21) into executable Python.
+**Responsible AI governance-as-code.** A personal learning prototype demonstrating risk assessment, safeguards with policy citations, and exportable approval records—translating NIST AI RMF, EU AI Act, ISO/IEC 42001, OWASP LLM Top 10, MITRE ATLAS, and U.S. federal AI policy (OMB M-25-21) into executable Python.
 
 **🚀 [Try the Live Demo](https://rai-toolkit.streamlit.app/)** ⏰ *App may sleep after inactivity; wakes in 30-60s*
 
@@ -13,7 +13,21 @@
 
 ---
 
-The **Frontier AI Risk Assessment Framework** demonstrates how policy, security, and engineering teams can run an intake, score risk, and assign safeguards inside a single workflow. Every safeguard is backed by policy pack citations so compliance reviewers and threat analysts can trace each decision.
+## What This Is / Isn't
+
+**This is a personal prototype for learning.** It demonstrates how governance ideas can be expressed as simple rules and exportable artifacts. It is not production-grade and is not affiliated with or endorsed by any employer. Examples are illustrative and may contain errors.
+
+**What it demonstrates:**
+- Risk scoring with transparent, additive factors
+- Policy-as-code with YAML-encoded governance frameworks
+- Automated control selection based on risk profile
+- Exportable Decision Records and Transparency Notes
+
+**What it is NOT:**
+- ❌ Not production software
+- ❌ Not legal advice
+- ❌ Not comprehensive (intentionally simplified for learning)
+- ❌ Not validated for real-world deployment
 
 **Built with AI coding assistance** (Cursor/Claude) to prioritize governance logic; test-backed and CI-gated.
 
@@ -31,22 +45,11 @@ streamlit run project1_risk_framework/app.py
 
 The app launches at `http://localhost:8501`. Enter a scenario, flag contextual risk modifiers, and download the generated Decision Record to test the full workflow end-to-end.
 
-**For AI-Powered Analysis:** The live demo includes built-in AI capabilities. For local development, choose your deployment model:
+**For AI-Powered Analysis:** The live demo includes built-in AI capabilities. For local development, set your OpenAI API key:
 
-**Option 1: OpenAI (default)**
 ```bash
 export OPENAI_API_KEY="sk-..."
 ```
-
-**Option 2: Azure OpenAI (recommended for enterprise)**
-```bash
-export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
-export AZURE_OPENAI_API_KEY="your-key"
-export AZURE_OPENAI_DEPLOYMENT="gpt-4o"
-export AZURE_OPENAI_API_VERSION="2024-02-15-preview"
-```
-
-> **Enterprise deployments should use Azure OpenAI** for data residency, compliance controls, and enterprise SLAs. No data is stored server-side by this app; see [Data Handling](#data-handling--privacy) below.
 
 **Writing effective prompts for AI analysis:**
 - ✅ **Good:** "A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses their medical records to check medication history and insurance eligibility. Patients interact directly via web and mobile app. The system suggests appointment times but requires nurse approval for prescription refills."
@@ -92,14 +95,6 @@ docker build -t rai-toolkit .
 
 # Run with OpenAI API key (for AI features)
 docker run -p 8501:8501 -e OPENAI_API_KEY=sk-... rai-toolkit
-
-# Or with Azure OpenAI
-docker run -p 8501:8501 \
-  -e AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/ \
-  -e AZURE_OPENAI_API_KEY=your-key \
-  -e AZURE_OPENAI_DEPLOYMENT=gpt-4o \
-  -e AZURE_OPENAI_API_VERSION=2024-02-15-preview \
-  rai-toolkit
 
 # Access at http://localhost:8501
 ```
@@ -183,21 +178,23 @@ pytest tests/ -k "not integration"    # Skip tests requiring API keys
 
 See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full CI configuration.
 
-## Data Handling & Privacy
+## Data Handling (Demo)
 
-**No sensitive data stored.** Assessment text exists only in browser memory during your session. Nothing is persisted to a database.
+**The live demo runs as a server-side Streamlit session with no database persistence.** Inputs exist only for the session and are discarded when it ends.
 
-**AI analysis data flow:**
-- Your scenario descriptions and interview answers are sent to OpenAI's API (or Azure OpenAI if configured) for analysis
-- Risk calculations, policy matching, and decision record generation happen locally in your browser
-- No assessment data is logged or retained by this application
+**If you click AI analysis:**
+- Your text is sent to the configured AI provider (this demo uses the OpenAI API)
+- Risk calculations and policy matching happen server-side in the Streamlit session
+- Nothing is permanently stored
 
-**Enterprise privacy controls:**
-- Use Azure OpenAI for data residency and compliance guarantees (recommended for production)
-- Run locally (no external API calls except when using AI analysis feature)
-- For air-gapped environments: disable AI analysis and use manual form input only
+**Do not paste sensitive or production data.**
 
-**Security.md:** See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and support windows. This application is a demonstration tool; validate with legal/privacy teams before processing actual sensitive data.
+**For local/production use:**
+- Run locally to control data flow entirely
+- Review OpenAI's terms of service before sending any data to their API
+- Validate with legal/privacy teams before processing actual sensitive information
+
+**Security.md:** See [`SECURITY.md`](SECURITY.md) for vulnerability reporting. This is a learning prototype; treat it as such.
 
 ## Framework Crosswalks
 
@@ -205,20 +202,17 @@ Stakeholders often ask how safeguards align with familiar standards. Use the ill
 
 ### Policy Frameworks
 
-| Framework | Alignment | Key Artifacts Generated |
-|-----------|-----------|------------------------|
-| **[Microsoft RAIS](docs/crosswalks/microsoft_rais.md)** | A1 (Impact Assessment), A2 (Sensitive Use Triage), A3 (Fit for Purpose), T2 (Transparency Note), PS1/PS2 (Privacy/Security) | Decision Record, Transparency Note stub, Risk Log |
-| **NIST AI RMF** | Govern/Map/Measure/Manage functions. Supports MAP-1.5 (supply chain), GOVERN-1.5 (data governance), NIST GenAI Profile risk areas | Risk assessment, policy pack controls |
-| **EU AI Act** | Annex III high-risk categories, Art. 52 (synthetic content transparency), Art. 13 (explainability). See [Official Journal L 178/2024](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) | Conformity documentation patterns |
-| **ISO/IEC 42001** | AIMS documentation patterns (risk log, transparency note, decision record) | Decision Record aligned to ISO audit expectations |
-| **U.S. OMB M-25-21** | Federal AI inventory, impact assessment, rights protection (replaces M-24-10 effective Jan 2025). Acquisition: M-25-22 (replaces M-24-18) | Impact assessment, rights-impact documentation |
-| **OWASP LLM Top 10 (2025)** | Prompt injection (LLM01), data leakage (LLM06), supply chain (LLM05). See [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/) | LLM-specific safeguards for generative AI |
-| **MITRE ATLAS** | Adversarial tactics (poisoning, evasion, exfiltration) mapped to model types | Threat model considerations |
-| **GDPR** | Art. 22 (explainability), Art. 44-50 (cross-border transfers), right to appeal | Data protection impact assessment inputs |
+This toolkit demonstrates illustrative alignment with several governance frameworks:
 
-**Important:** All cross walk briefs are illustrative examples based on publicly available framework texts. They are **not** authoritative legal interpretations. Confirm requirements with counsel or compliance before treating them as canonical.
+- **NIST AI RMF** — Govern/Map/Measure/Manage functions. Supports MAP-1.5 (supply chain), GOVERN-1.5 (data governance), NIST GenAI Profile risk areas
+- **EU AI Act** — Annex III high-risk categories, Art. 52 (synthetic content transparency), Art. 13 (explainability). See [Official Journal L 178/2024](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689)
+- **ISO/IEC 42001** — AIMS documentation patterns (risk log, transparency note, decision record)
+- **U.S. OMB M-25-21** — Federal AI inventory, impact assessment, rights protection (replaces M-24-10 effective Jan 2025). Acquisition: M-25-22 (replaces M-24-18)
+- **OWASP LLM Top 10 (2025)** — Prompt injection (LLM01), data leakage (LLM06), supply chain (LLM05). See [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- **MITRE ATLAS** — Adversarial tactics (poisoning, evasion, exfiltration) mapped to model types
+- **GDPR** — Art. 22 (explainability), Art. 44-50 (cross-border transfers), right to appeal
 
-**Note on RAIS:** This tool demonstrates alignment patterns from the [published Microsoft RAIS goals](https://www.microsoft.com/en-us/ai/responsible-ai). It does not replicate internal Microsoft assessment processes or checklists.
+**Important:** All framework references are illustrative examples based on publicly available texts. They are **not** authoritative legal interpretations. Confirm requirements with counsel or compliance before treating them as canonical.
 
 ## Advanced Risk Factors
 
