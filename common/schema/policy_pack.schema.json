@@ -58,6 +58,37 @@
               "modifiers": {
                 "type": "array",
                 "items": {"type": "string"}
+              },
+              "model_type": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "data_source": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "learns_in_production": {"type": "boolean"},
+              "international_data": {"type": "boolean"},
+              "explainability_level": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "uses_foundation_model": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "generates_synthetic_content": {"type": "boolean"},
+              "dual_use_risk": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "decision_reversible": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "protected_populations": {
+                "type": "array",
+                "items": {"type": "string"}
               }
             },
             "additionalProperties": false
