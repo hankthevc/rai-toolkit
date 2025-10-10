@@ -209,10 +209,8 @@ If the description is already comprehensive, ask 1-2 clarifying questions and pr
         return completion.choices[0].message.parsed
         
     except Exception as e:
-        print(f"Interview failed: {e}")
-        import traceback
-        print(traceback.format_exc())
-        return None
+        # Re-raise the exception so it can be caught and displayed in the UI
+        raise Exception(f"Interview API call failed: {str(e)}") from e
 
 
 def format_interview_questions(response: InterviewResponse) -> str:
