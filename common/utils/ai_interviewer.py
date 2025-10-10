@@ -145,6 +145,7 @@ def conduct_interview(
     initial_description: str,
     conversation_history: list[dict] = None,
     api_key: Optional[str] = None,
+    demo_mode: bool = False,
 ) -> Optional[InterviewResponse]:
     """Conduct AI governance interview to gather comprehensive context.
     
@@ -152,19 +153,17 @@ def conduct_interview(
         initial_description: User's initial use case description
         conversation_history: List of {"question": str, "answer": str} from previous turns
         api_key: OpenAI API key
+        demo_mode: If True, return canned response without API call
         
     Returns:
         InterviewResponse with questions or ready_for_analysis=True
     """
-    if OpenAI is None:
-        raise ImportError("openai package not installed. Run: pip install openai")
+    from .openai_helpers import safe_openai_call
     
     if not initial_description or not initial_description.strip():
         return None
     
     api_key = api_key or os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OpenAI API key required")
     
     # Build conversation context
     conversation_context = f"**Initial Description:**\n{initial_description}\n\n"
@@ -193,24 +192,25 @@ Don't try to be exhaustive - just get enough for a useful demonstration assessme
 
 If the description is already comprehensive, ask 1-2 clarifying questions and prepare to proceed to analysis."""
     
-    try:
-        client = OpenAI(api_key=api_key)
-        
-        completion = client.beta.chat.completions.parse(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": INTERVIEW_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt}
-            ],
-            response_format=InterviewResponse,
-            temperature=0.5,  # Balanced between consistency and conversational
-        )
-        
-        return completion.choices[0].message.parsed
-        
-    except Exception as e:
-        # Re-raise the exception so it can be caught and displayed in the UI
-        raise Exception(f"Interview API call failed: {str(e)}") from e
+    messages = [
+        {"role": "system", "content": INTERVIEW_SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt}
+    ]
+    
+    result = safe_openai_call(
+        messages=messages,
+        model="gpt-4o",
+        temperature=0.5,
+        response_format=InterviewResponse,
+        demo_mode=demo_mode,
+        api_key=api_key,
+    )
+    
+    if result["success"]:
+        return result["data"]
+    else:
+        # Raise error so UI can display it
+        raise Exception(f"Interview failed: {result.get('error', 'Unknown error')}")
 
 
 def format_interview_questions(response: InterviewResponse) -> str:

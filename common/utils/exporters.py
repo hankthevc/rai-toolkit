@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+import os
+from datetime import date, datetime, timedelta, timezone
 from typing import Sequence
 
 from jinja2 import Environment, StrictUndefined
@@ -13,6 +14,13 @@ from .risk_engine import RiskAssessment, RiskInputs, check_stop_ship_triggers
 # Jinja template keeps formatting consistent across UI and CLI flows.
 _DECISION_TEMPLATE = """
 # Frontier AI Risk Decision Record
+
+## Metadata
+- **Generated:** {{ generated_timestamp }}
+- **App Commit:** {{ app_commit }}
+- **Model:** {{ model_name }} (temperature={{ model_temperature }})
+
+---
 
 **Scenario Owner:** {{ owner }}  \
 **Approver:** {{ approver }}  \
@@ -32,7 +40,7 @@ _DECISION_TEMPLATE = """
 - Sector: {{ scenario.sector }}
 - Modifiers: {% if scenario.modifiers %}{{ scenario.modifiers | join(", ") }}{% else %}None{% endif %}
 
-## Stop-Ship Triggers
+## Stop-Ship Triggers Encountered
 {% if stop_ship_triggers %}
 **⚠️ The following deployment gates must be satisfied before launch:**
 
@@ -42,7 +50,20 @@ _DECISION_TEMPLATE = """
 
 These are hard gates per governance methodology. Deployment is blocked until all requirements are verified and documented.
 {% else %}
-No stop-ship triggers identified for this risk profile. Standard approval process applies.
+None
+{% endif %}
+
+## Assumptions & Unknowns
+{% if unknowns %}
+The following areas could not be fully assessed due to insufficient information:
+
+{% for unknown in unknowns %}
+- {{ unknown }}
+{% endfor %}
+
+If additional details are available, re-run the assessment for a more comprehensive evaluation.
+{% else %}
+None identified
 {% endif %}
 
 ## Required Safeguards
@@ -77,6 +98,9 @@ def build_decision_record(
     approver: str,
     review_interval_days: int = 90,
     risk_inputs: RiskInputs | None = None,
+    model_name: str = "unknown",
+    model_temperature: float = 0.0,
+    unknowns: list[str] | None = None,
 ) -> str:
     """Render a Markdown decision record for the given inputs."""
 
@@ -87,6 +111,10 @@ def build_decision_record(
     if risk_inputs:
         stop_ship_triggers = check_stop_ship_triggers(risk_inputs, assessment)
     
+    # Get metadata
+    generated_timestamp = datetime.now(timezone.utc).isoformat()
+    app_commit = os.getenv("RAI_TOOLKIT_COMMIT_SHA", "unknown")
+    
     return _template.render(
         scenario=scenario,
         assessment=assessment,
@@ -96,4 +124,9 @@ def build_decision_record(
         assessment_date=date.today().isoformat(),
         next_review_date=next_review.isoformat(),
         stop_ship_triggers=stop_ship_triggers,
+        unknowns=unknowns or [],
+        generated_timestamp=generated_timestamp,
+        app_commit=app_commit,
+        model_name=model_name,
+        model_temperature=model_temperature,
     )

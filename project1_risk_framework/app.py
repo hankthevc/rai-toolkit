@@ -173,10 +173,11 @@ def main():
 
     st.title("Frontier AI Risk Assessment Framework")
     
-    # Disclaimer banner
+    # Always-visible data handling & demo scope banner
     st.info(
-        "Personal learning prototype to show how I structure AI governance decisions. "
-        "Not production software or legal advice. Please **do not paste sensitive data**.",
+        "**Demo app for AI governance exploration.** Inputs are session-only; no database. "
+        "If you enable AI analysis, your scenario text and interview Q&A are sent to the OpenAI API. "
+        "**Do not paste sensitive data.**",
         icon="ℹ️"
     )
     
@@ -223,8 +224,27 @@ def main():
 
     packs = _load_packs()
     
+    # Get policy validation status
+    from common.utils.policy_loader import get_policy_validation_status
+    validation_status = get_policy_validation_status()
+    
     # Sidebar: Data Handling & Privacy Information
     with st.sidebar:
+        # Demo mode checkbox
+        demo_mode = st.checkbox(
+            "Demo mode (no external API calls)",
+            value=False,
+            help="Use canned responses instead of OpenAI API. Useful for exploring the workflow without an API key."
+        )
+        
+        # Policy pack validation status
+        if validation_status["ok"] == validation_status["total"]:
+            st.success(f"🟢 Policy packs: OK ({validation_status['total']})", icon="✅")
+        else:
+            error_count = len(validation_status["errors"])
+            st.error(f"🔴 Policy packs: schema errors ({error_count} of {validation_status['total']})", icon="⚠️")
+        
+        st.markdown("---")
         st.header("🔒 Data Handling")
         st.markdown("""
         **Your data privacy:**
@@ -358,14 +378,14 @@ def main():
     if "quick_desc" not in st.session_state:
         st.session_state.quick_desc = ""
     
-    quick_description = st.text_area(
-        "📝 Describe your AI use case (see tips above for what to include)",
+        quick_description = st.text_area(
+            "📝 Describe your AI use case (see tips above for what to include)",
         value=st.session_state.quick_desc,
-        placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
-        height=140,
+            placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
+            height=140,
         key="quick_desc_input",
-        help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
-    )
+            help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
+        )
     
     # Single analyze button - automatically uses interview mode
     analyze_button = st.button("🔍 Analyze AI Use Case", use_container_width=True, type="primary", 
@@ -377,17 +397,18 @@ def main():
             try:
                 # Get API key from Streamlit Cloud secrets
                 api_key = None
-                try:
-                    api_key = st.secrets.get("OPENAI_API_KEY")
+                    try:
+                        api_key = st.secrets.get("OPENAI_API_KEY")
                 except Exception as e:
                     st.error(f"⚠️ Error getting API key: {str(e)}")
                 
-                if api_key:
+                    if api_key:
                     # Conduct initial interview
                     interview_response = conduct_interview(
                         initial_description=quick_description,
                         conversation_history=st.session_state.interview_history,
-                        api_key=api_key
+                        api_key=api_key,
+                        demo_mode=demo_mode
                     )
                     if interview_response:
                         if interview_response.ready_for_analysis:
@@ -398,13 +419,13 @@ def main():
                             for turn in st.session_state.interview_history:
                                 enriched_description += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
                             
-                            analysis = parse_scenario_with_ai(enriched_description, api_key=api_key)
-                            if analysis:
-                                st.session_state.ai_analysis = analysis
-                                st.session_state.show_ai_preview = True
+                            analysis = parse_scenario_with_ai(enriched_description, api_key=api_key, demo_mode=demo_mode)
+                    if analysis:
+                        st.session_state.ai_analysis = analysis
+                        st.session_state.show_ai_preview = True
                                 st.session_state.interview_mode = False
                                 st.session_state.interview_history = []  # Reset for next time
-                        else:
+                    else:
                             # Need more info - show questions
                             st.session_state.interview_mode = True
                             st.session_state.interview_questions = interview_response
@@ -461,7 +482,8 @@ def main():
                     interview_response = conduct_interview(
                         initial_description=quick_description,
                         conversation_history=st.session_state.interview_history,
-                        api_key=api_key
+                        api_key=api_key,
+                        demo_mode=demo_mode
                     )
                     
                     if interview_response and interview_response.ready_for_analysis:
@@ -470,7 +492,7 @@ def main():
                         for turn in st.session_state.interview_history:
                             enriched_description += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
                         
-                        analysis = parse_scenario_with_ai(enriched_description, api_key=api_key)
+                        analysis = parse_scenario_with_ai(enriched_description, api_key=api_key, demo_mode=demo_mode)
                         if analysis:
                             st.session_state.ai_analysis = analysis
                             st.session_state.show_ai_preview = True
@@ -570,8 +592,8 @@ def main():
     # REMOVED: Manual form - all assessment now driven by AI interview
     # Old manual form code removed to streamline UX
     if False:  # Keeping structure for reference but never executing
-        with st.form(key="risk_form"):
-            st.subheader("Scenario Inputs")
+    with st.form(key="risk_form"):
+        st.subheader("Scenario Inputs")
         
         # Get suggested values from AI analysis if available
         suggested = st.session_state.ai_analysis if st.session_state.ai_analysis else None
@@ -767,15 +789,15 @@ def main():
     controls = select_applicable_controls(packs, scenario_context)
 
     # Generate unified governance assessment
-    st.markdown("---")
+        st.markdown("---")
     st.subheader("📋 Governance Assessment")
     
     # Build comprehensive prose assessment
     risk_tier_icons = {
-        "Low": "🟢",
-        "Medium": "🟡",
-        "High": "🟠",
-        "Critical": "🔴"
+                "Low": "🟢",
+                "Medium": "🟡",
+                "High": "🟠",
+                "Critical": "🔴"
     }
     risk_icon = risk_tier_icons.get(assessment.tier, "⚪")
     
@@ -879,6 +901,13 @@ def main():
             icon="⚠️",
         )
 
+    # Extract unknowns from AI analysis if available
+    unknowns = []
+    model_name = "unknown"
+    model_temp = 0.0
+    if st.session_state.ai_analysis and hasattr(st.session_state.ai_analysis, 'gaps_and_limitations'):
+        unknowns = st.session_state.ai_analysis.gaps_and_limitations
+    
     record = build_decision_record(
         scenario=scenario_context,
         assessment=assessment,
@@ -886,6 +915,9 @@ def main():
         owner=owner,
         approver=approver,
         risk_inputs=risk_inputs,
+        model_name=model_name,
+        model_temperature=model_temp,
+        unknowns=unknowns,
     )
     
     # Generate Transparency Note (illustrative template)
@@ -893,6 +925,8 @@ def main():
         scenario=scenario_context,
         assessment=assessment,
         controls=controls,
+        model_name=model_name,
+        model_temperature=model_temp,
     )
 
     # Download buttons in columns
@@ -926,8 +960,8 @@ def main():
         st.markdown(f"**System Owner:** {html.escape(owner) if owner else 'Not specified'}")
         st.markdown(f"**Approver:** {html.escape(approver) if approver else 'Not specified'}")
         st.caption("These roles are responsible for implementing and monitoring safeguards")
-    
-    with col2:
+        
+        with col2:
         review_interval_days = 90  # Default from exporters.py
         st.markdown(f"**Next Review:** {review_interval_days} days from approval")
         st.markdown(f"**Risk Tier:** {assessment.tier}")
@@ -1203,10 +1237,10 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
     
     # Build comprehensive prose assessment
     risk_tier_icons = {
-        "Low": "🟢",
-        "Medium": "🟡",
-        "High": "🟠",
-        "Critical": "🔴"
+                "Low": "🟢",
+                "Medium": "🟡",
+                "High": "🟠",
+                "Critical": "🔴"
     }
     risk_icon = risk_tier_icons.get(assessment.tier, "⚪")
     
@@ -1276,7 +1310,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         st.markdown(badge_html, unsafe_allow_html=True)
     else:
         st.caption("No specific standards triggered for this risk profile.")
-    
+
     # Safeguards surface authority + clause so reviewers can trace each recommendation.
     st.markdown("---")
     st.subheader("Required Safeguards from Policy Packs")
@@ -1305,6 +1339,13 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
             "No safeguards matched the scenario inputs. Review policy coverage before approving.",
             icon="⚠️",
         )
+
+    # Extract metadata from AI analysis
+    unknowns = []
+    model_name = "demo-mode" if demo_mode else "gpt-4o"
+    model_temp = 0.3
+    if hasattr(ai_analysis, 'gaps_and_limitations'):
+        unknowns = ai_analysis.gaps_and_limitations
     
     # Provide download for decision record (without requiring owner/approver since AI-driven)
     record = build_decision_record(
@@ -1314,6 +1355,9 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         owner="AI-Driven Assessment",
         approver="Pending Review",
         risk_inputs=risk_inputs,
+        model_name=model_name,
+        model_temperature=model_temp,
+        unknowns=unknowns,
     )
     
     # Generate Transparency Note (illustrative template)
@@ -1321,17 +1365,19 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         scenario=scenario_context,
         assessment=assessment,
         controls=controls,
+        model_name=model_name,
+        model_temperature=model_temp,
     )
     
     # Download buttons in columns
     col_dr, col_tn = st.columns(2)
     with col_dr:
-        st.download_button(
+    st.download_button(
             label="📄 Download Decision Record",
-            data=record,
-            file_name="frontier_ai_decision_record.md",
-            mime="text/markdown",
-            use_container_width=True,
+        data=record,
+        file_name="frontier_ai_decision_record.md",
+        mime="text/markdown",
+        use_container_width=True,
             help="Complete risk assessment with safeguards and approval signatures"
         )
     with col_tn:
@@ -1345,7 +1391,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         )
     
     # Owners & Next Steps
-    st.markdown("---")
+        st.markdown("---")
     st.subheader("👥 Owners & Next Steps")
     
     col1, col2 = st.columns(2)
@@ -1577,7 +1623,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
                                     pass
                                 
                                 if api_key:
-                                    refined_analysis = parse_scenario_with_ai(enriched_description, api_key=api_key)
+                                    refined_analysis = parse_scenario_with_ai(enriched_description, api_key=api_key, demo_mode=demo_mode)
                                     if refined_analysis:
                                         # Update session state and re-render
                                         st.session_state.ai_analysis = refined_analysis
@@ -1594,7 +1640,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
                 if st.button("Cancel", use_container_width=True):
                     st.session_state.show_refinement_box = False
                     st.rerun()
-    
+
     st.markdown("---")
     _render_about_section()
 

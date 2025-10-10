@@ -258,6 +258,7 @@ def parse_scenario_with_ai(
     use_case_description: str,
     api_key: Optional[str] = None,
     model: str = "gpt-4o",  # Using gpt-4o for better structured output support
+    demo_mode: bool = False,
 ) -> Optional[ScenarioAnalysis]:
     """Parse a plain-language AI scenario and suggest risk assessment values.
 
@@ -265,6 +266,7 @@ def parse_scenario_with_ai(
         use_case_description: Plain-language description of the AI use case
         api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
         model: OpenAI model to use (gpt-4o-mini for cost efficiency, gpt-4o for accuracy)
+        demo_mode: If True, return canned response without API call
 
     Returns:
         ScenarioAnalysis with suggested values, or None if parsing fails
@@ -276,45 +278,35 @@ def parse_scenario_with_ai(
         >>> if analysis:
         ...     print(f"PII: {analysis.contains_pii}, Sector: {analysis.sector}")
     """
-    if OpenAI is None:
-        raise ImportError(
-            "openai package not installed. Run: pip install openai"
-        )
+    from .openai_helpers import safe_openai_call
 
     if not use_case_description or not use_case_description.strip():
         return None
 
     api_key = api_key or os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "OpenAI API key required. Set OPENAI_API_KEY environment variable "
-            "or pass api_key parameter."
-        )
 
-    try:
-        client = OpenAI(api_key=api_key)
-        
-        completion = client.beta.chat.completions.parse(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": f"Analyze this AI use case and suggest risk assessment values:\n\n{use_case_description}"
-                }
-            ],
-            response_format=ScenarioAnalysis,
-            temperature=0.3,  # Lower temperature for more consistent risk assessment
-        )
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": f"Analyze this AI use case and suggest risk assessment values:\n\n{use_case_description}"
+        }
+    ]
 
-        parsed_result = completion.choices[0].message.parsed
-        return parsed_result
+    result = safe_openai_call(
+        messages=messages,
+        model=model,
+        temperature=0.3,
+        response_format=ScenarioAnalysis,
+        demo_mode=demo_mode,
+        api_key=api_key,
+    )
 
-    except Exception as e:
-        # Log the error but don't crash the app
-        print(f"AI parsing failed: {e}")
-        import traceback
-        print(traceback.format_exc())
+    if result["success"]:
+        return result["data"]
+    else:
+        # Log error but don't crash
+        print(f"AI parsing failed: {result.get('error', 'Unknown error')}")
         return None
 
 

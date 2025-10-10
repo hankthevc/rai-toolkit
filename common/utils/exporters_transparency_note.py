@@ -7,6 +7,9 @@ demonstration purposes only.
 
 from __future__ import annotations
 
+import os
+from datetime import datetime, timezone
+
 from common.utils.risk_engine import RiskAssessment
 from common.utils.policy_loader import ScenarioContext, PolicyControl
 
@@ -15,6 +18,8 @@ def build_transparency_note(
     scenario: ScenarioContext,
     assessment: RiskAssessment,
     controls: list[PolicyControl],
+    model_name: str = "unknown",
+    model_temperature: float = 0.0,
 ) -> str:
     """
     Generate a Transparency Note stub for stakeholder communication.
@@ -23,10 +28,16 @@ def build_transparency_note(
         scenario: The assessed scenario context
         assessment: Risk assessment results
         controls: List of applicable policy controls
+        model_name: Model used for AI analysis
+        model_temperature: Temperature parameter used
         
     Returns:
         Markdown-formatted Transparency Note stub
     """
+    
+    # Get metadata
+    generated_timestamp = datetime.now(timezone.utc).isoformat()
+    app_commit = os.getenv("RAI_TOOLKIT_COMMIT_SHA", "unknown")
     
     # Determine appropriate use limitations based on risk factors
     limitations = []
@@ -48,6 +59,13 @@ def build_transparency_note(
     
     # Build the note
     note = f"""# Transparency Note
+
+## Metadata
+- **Generated:** {generated_timestamp}
+- **App Commit:** {app_commit}
+- **Model:** {model_name} (temperature={model_temperature})
+
+---
 
 **System Name:** [TO BE COMPLETED]
 

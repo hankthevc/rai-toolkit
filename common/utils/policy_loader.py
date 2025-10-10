@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence
 
 import yaml
+from jsonschema import Draft7Validator, ValidationError
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -190,3 +192,72 @@ def select_applicable_controls(
             if control_matches(control, scenario):
                 matched.append(control)
     return matched
+
+
+# Global cache for validation status (computed once at startup)
+_VALIDATION_STATUS: Dict | None = None
+
+
+def validate_policy_packs(directory: Path, schema_path: Path) -> Dict:
+    """
+    Validate all YAML policy packs against JSON schema.
+    
+    Returns:
+        Dict with keys: total, ok, errors (list of {"file": ..., "message": ...})
+    """
+    with open(schema_path) as f:
+        schema = json.load(f)
+    
+    validator = Draft7Validator(schema)
+    
+    total = 0
+    ok = 0
+    errors = []
+    
+    for yaml_file in sorted(directory.glob("*.yaml")):
+        total += 1
+        try:
+            with open(yaml_file) as f:
+                data = yaml.safe_load(f)
+            
+            # Validate against schema
+            validation_errors = list(validator.iter_errors(data))
+            if validation_errors:
+                for err in validation_errors:
+                    errors.append({
+                        "file": yaml_file.name,
+                        "message": f"{'.'.join(str(p) for p in err.path)}: {err.message}" if err.path else err.message
+                    })
+            else:
+                ok += 1
+        except Exception as e:
+            errors.append({
+                "file": yaml_file.name,
+                "message": f"Failed to load/parse: {str(e)}"
+            })
+    
+    return {
+        "total": total,
+        "ok": ok,
+        "errors": errors
+    }
+
+
+def get_policy_validation_status() -> Dict:
+    """
+    Get cached validation status of policy packs.
+    
+    Call this after policy packs are loaded to check if there were schema errors.
+    Returns dict with: total, ok, errors
+    """
+    global _VALIDATION_STATUS
+    
+    if _VALIDATION_STATUS is None:
+        # Compute on first call
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        packs_dir = repo_root / "common" / "policy_packs"
+        schema_path = repo_root / "common" / "schema" / "policy_pack.schema.json"
+        
+        _VALIDATION_STATUS = validate_policy_packs(packs_dir, schema_path)
+    
+    return _VALIDATION_STATUS

@@ -100,6 +100,8 @@ The app launches at `http://localhost:8501`.
 **🌐 Try it now:** https://rai-toolkit.streamlit.app/
 
 > ⏰ **Note:** Streamlit Cloud apps sleep after inactivity. Wait 30-60 seconds if you see a "waking up" message.
+> 
+> 💡 **Tip:** If the demo is sleeping or you have no API key, enable **"Demo mode"** in the sidebar to explore the workflow without external API calls.
 
 **What you can do:**
 - Describe an AI scenario and get an instant risk assessment
