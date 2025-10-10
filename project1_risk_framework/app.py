@@ -219,23 +219,26 @@ def main():
         st.header("🔒 Data Handling")
         st.markdown("""
         **Your data privacy:**
-        - ✅ **No data stored:** Assessments are not saved to any database
-        - ✅ **Local processing:** Risk calculations run entirely in your browser session
-        - ⚠️ **AI analysis:** If you use AI parsing, your scenario description is sent to OpenAI's API
-        - 🔑 **API keys:** Stored only in browser session memory (not persisted)
+        - ✅ **No data stored:** Assessments exist only in your browser session (not saved to database)
+        - ✅ **Session-only:** All data cleared when you close the browser tab
+        - ⚠️ **AI analysis:** Your scenario descriptions and answers are sent to OpenAI's API for analysis
         
-        **What happens when you:**
-        - **Fill the form:** Data stays in your browser
-        - **Click "Analyze with AI":** Scenario text sent to OpenAI (subject to their terms)
-        - **Submit assessment:** Risk score calculated locally
-        - **Download record:** File generated client-side
+        **What gets sent to OpenAI:**
+        - Your AI use case description
+        - Your answers to clarifying questions
+        - Any additional context you provide for refinement
         
-        **Recommendations:**
-        - Don't paste actual PII/PHI into scenario descriptions
-        - Use anonymized examples instead
-        - For production use, deploy locally or review vendor terms
+        **What stays local:**
+        - Risk score calculations (computed in browser)
+        - Policy pack matching logic
+        - Decision record generation
         
-        [Privacy Policy](https://streamlit.io/privacy-policy) | [Terms of Service](https://streamlit.io/terms-of-service)
+        **Important recommendations:**
+        - ❌ Don't paste real PII/PHI or confidential information
+        - ✅ Use anonymized/hypothetical examples instead
+        - ⚠️ For production assessments, deploy locally or consult legal/privacy teams
+        
+        [OpenAI Terms](https://openai.com/policies/terms-of-use) | [Streamlit Privacy](https://streamlit.io/privacy-policy)
         """)
         
         st.markdown("---")
