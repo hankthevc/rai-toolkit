@@ -266,7 +266,7 @@ def main():
 
     # AI Analysis section (outside form for interactivity)
     st.subheader("🤖 AI-Powered Analysis (Experimental)")
-    st.caption("Meta-governance: This tool was vibecoded with AI—now it uses AI to help *you* assess AI systems.")
+    st.caption("Meta-governance: This tool uses AI to help you assess AI systems against governance frameworks.")
     
     # Quick reference always visible
     st.info("""

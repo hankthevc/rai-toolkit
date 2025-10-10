@@ -43,7 +43,7 @@
 ### 4. **Cross-Functional Communication**
 - Framework crosswalk documents tailored for compliance, security, and engineering audiences
 - Exportable Decision Records (Markdown) for ticketing systems and audit trails
-- Educational documentation (`FILE_OVERVIEW.md`) written for early-career developers
+- Educational documentation and clear methodology guides
 
 ---
 
@@ -124,7 +124,7 @@ Generates audit-ready Markdown files with:
 - **8+ analytics visualizations** for governance trend analysis
 - **Full CI/CD pipeline** with automated testing
 - **< 30 seconds** from plain-language description → AI analysis → risk-assessed Decision Record
-- **Educational documentation** for early-career developers (`FILE_OVERVIEW.md`, learning journal)
+- **Educational documentation** with clear methodology guides and framework crosswalks
 
 ---
 

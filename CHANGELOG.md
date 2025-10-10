@@ -40,15 +40,12 @@ All notable changes to this project will be documented here. This project adhere
 ### Documentation
 - Repository scaffolding with CODE_OF_CONDUCT, SECURITY, CONTRIBUTING
 - Framework crosswalks for six major AI governance standards
-- File-by-file overview for early-career developers
 - Methodology deep dive explaining scoring rationale
 - Three real-world case studies with decision records:
   - Healthcare Patient Support Chatbot (Critical tier, 12 points, 15 controls)
   - Internal Code Copilot (Low tier, 0 points, 0 controls)
   - AI-Powered Hiring Platform (Critical tier, 9 points, 11 controls + gap analysis)
 - Comprehensive deployment guide (Streamlit Cloud, Docker, Heroku, AWS)
-- Technical blog post (2,500+ words) on governance-as-code architecture
-- Ship checklist with before/after metrics and interview talking points
 
 ### Configuration
 - Streamlit Cloud deployment configuration (`.streamlit/config.toml`)

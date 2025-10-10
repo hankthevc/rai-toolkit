@@ -96,7 +96,7 @@ The record gives GRC teams an auditable artifact ready for ticketing systems or 
 
 1. Packs live in `common/policy_packs/` and must conform to `common/schema/policy_pack.schema.json`.
 2. Updates proceed via pull requests referencing the relevant incident, regulation, or audit finding.
-3. The changelog captures pack revisions, and `docs/LEARNING_JOURNAL.md` logs why the update occurred.
+3. The changelog captures pack revisions and documents why each update occurred.
 4. Every pack header reminds readers the mappings are illustrative and require counsel review.
 5. Git tags (starting with `v0.1`) snapshot the state of the packs so downstream teams can pin to a known baseline.
 

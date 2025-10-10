@@ -281,7 +281,6 @@ See [`docs/case_studies/`](docs/case_studies/) for detailed walkthroughs:
 ### Methodology
 
 - **[Methodology Deep-Dive](docs/methodology_project1.md)** — Scoring rationale, stop-ship rules, governance trade-offs
-- **[File Overview](docs/FILE_OVERVIEW.md)** — Plain-language walkthrough for early-career coders
 - **[Framework Crosswalks](docs/crosswalks/)** — How controls map to NIST, EU AI Act, ISO 42001, OWASP, MITRE ATLAS, OMB
 
 ---
