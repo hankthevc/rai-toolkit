@@ -1605,16 +1605,6 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
     if risk_inputs.sector in sector_guidance:
         st.info(sector_guidance[risk_inputs.sector])
     
-    # Clarification questions for reviewer
-    st.markdown("""
-    **Questions to Refine Assessment:**
-    - Is there a human-in-the-loop for high-risk decisions?
-    - What's the plan if the AI makes a wrong decision?
-    - How will you monitor for drift or degradation?
-    - What's your incident response plan?
-    - Have you consulted legal/privacy/security teams yet?
-    """)
-    
     st.markdown("---")
     _render_about_section()
 
