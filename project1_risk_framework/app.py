@@ -580,7 +580,7 @@ def main():
             
             # Automatically trigger risk assessment from AI analysis
             st.markdown("---")
-            _render_risk_assessment_from_ai(st.session_state.ai_analysis, quick_description, packs)
+            _render_risk_assessment_from_ai(st.session_state.ai_analysis, quick_description, packs, demo_mode)
             return
 
     # If no AI analysis yet, show info message
@@ -589,7 +589,7 @@ def main():
     _render_about_section()
 
 
-def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
+def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode: bool = False):
     """Automatically generate risk assessment from AI analysis results."""
     
     # Convert AI analysis to RiskInputs
