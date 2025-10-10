@@ -183,7 +183,7 @@ See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full CI confi
 **The live demo runs as a server-side Streamlit session with no database persistence.** Inputs exist only for the session and are discarded when it ends.
 
 **AI analysis (core feature):**
-- Your scenario descriptions are sent to OpenAI's API (gpt-4o-mini) for analysis
+- Your scenario descriptions are sent to OpenAI's API (gpt-4o) for analysis
 - The AI suggests risk factors, which you can review and adjust
 - Risk calculations and policy matching happen server-side in the Streamlit session
 - Nothing is permanently stored
