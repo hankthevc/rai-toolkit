@@ -8,7 +8,7 @@ from typing import Sequence
 from jinja2 import Environment, StrictUndefined
 
 from .policy_loader import PolicyControl, ScenarioContext
-from .risk_engine import RiskAssessment
+from .risk_engine import RiskAssessment, RiskInputs, check_stop_ship_triggers
 
 # Jinja template keeps formatting consistent across UI and CLI flows.
 _DECISION_TEMPLATE = """
@@ -31,6 +31,19 @@ _DECISION_TEMPLATE = """
 - Autonomy Level: {{ scenario.autonomy_level }}
 - Sector: {{ scenario.sector }}
 - Modifiers: {% if scenario.modifiers %}{{ scenario.modifiers | join(", ") }}{% else %}None{% endif %}
+
+## Stop-Ship Triggers
+{% if stop_ship_triggers %}
+**⚠️ The following deployment gates must be satisfied before launch:**
+
+{% for trigger in stop_ship_triggers %}
+{{ loop.index }}. {{ trigger }}
+{% endfor %}
+
+These are hard gates per governance methodology. Deployment is blocked until all requirements are verified and documented.
+{% else %}
+No stop-ship triggers identified for this risk profile. Standard approval process applies.
+{% endif %}
 
 ## Required Safeguards
 {% if controls %}
@@ -63,10 +76,17 @@ def build_decision_record(
     owner: str,
     approver: str,
     review_interval_days: int = 90,
+    risk_inputs: RiskInputs | None = None,
 ) -> str:
     """Render a Markdown decision record for the given inputs."""
 
     next_review = date.today() + timedelta(days=review_interval_days)
+    
+    # Check stop-ship triggers if risk_inputs provided
+    stop_ship_triggers = []
+    if risk_inputs:
+        stop_ship_triggers = check_stop_ship_triggers(risk_inputs, assessment)
+    
     return _template.render(
         scenario=scenario,
         assessment=assessment,
@@ -75,4 +95,5 @@ def build_decision_record(
         approver=approver or "Pending",
         assessment_date=date.today().isoformat(),
         next_review_date=next_review.isoformat(),
+        stop_ship_triggers=stop_ship_triggers,
     )

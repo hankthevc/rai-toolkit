@@ -300,3 +300,77 @@ def check_sensitive_use_gating(inputs: RiskInputs, assessment: RiskAssessment) -
         "approval_level": approval_level,
         "escalation_flags": escalation_flags
     }
+
+
+def check_stop_ship_triggers(
+    inputs: RiskInputs,
+    assessment: RiskAssessment,
+) -> List[str]:
+    """
+    Check if scenario triggers any stop-ship rules.
+    
+    Stop-ship rules represent hard gates that halt deployment until specific safeguards
+    are verified. Based on the methodology in docs/methodology_project1.md.
+    
+    Args:
+        inputs: The risk input scenario
+        assessment: The calculated risk assessment
+        
+    Returns:
+        List of triggered stop-ship rules with required actions
+    """
+    triggered_rules = []
+    
+    # Rule 1: Critical + PII + Irreversible Decisions
+    if (assessment.tier == "Critical" and 
+        inputs.contains_pii and 
+        inputs.decision_reversible == "Irreversible"):
+        triggered_rules.append(
+            "**Critical + PII + Irreversible:** Legal review, DPIA, appeals mechanism, VP sign-off required (GDPR Art. 22, EU AI Act)"
+        )
+    
+    # Rule 2: Critical + Protected Populations
+    protected_groups = ["Children", "Elderly", "People with Disabilities"]
+    if assessment.tier == "Critical" and inputs.protected_populations:
+        if any(group in inputs.protected_populations for group in protected_groups):
+            triggered_rules.append(
+                "**Critical + Protected Populations:** Accessibility audit (WCAG 2.1 AA), bias testing, civil rights consultation required (ADA, COPPA)"
+            )
+    
+    # Rule 3: Critical + High Dual-Use Risk
+    if assessment.tier == "Critical" and inputs.dual_use_risk in ["High (Weaponization)", "Export Control"]:
+        triggered_rules.append(
+            "**Critical + High Dual-Use:** Export control classification, red team testing, restricted access controls required (EAR/ITAR)"
+        )
+    
+    # Rule 4: High + Healthcare/Finance Sector
+    if assessment.tier == "High" and inputs.sector in ["Healthcare", "Finance"]:
+        sector_reqs = "HIPAA compliance" if inputs.sector == "Healthcare" else "GLBA/SR 11-7 compliance"
+        triggered_rules.append(
+            f"**High + {inputs.sector}:** {sector_reqs}, sector-specific security assessment required"
+        )
+    
+    # Rule 5: High + External API + PII
+    if (assessment.tier == "High" and 
+        inputs.uses_foundation_model == "External API (OpenAI/Anthropic/etc.)" and 
+        inputs.contains_pii):
+        triggered_rules.append(
+            "**High + External API + PII:** Vendor contract review, data leakage assessment, encryption verification required"
+        )
+    
+    # Rule 6: High + Real-Time Learning
+    if assessment.tier == "High" and inputs.learns_in_production:
+        triggered_rules.append(
+            "**High + Real-Time Learning:** Poisoning mitigation, drift monitoring, rollback procedures required (MITRE ATLAS AML.T0018)"
+        )
+    
+    # Rule 7: Synthetic Content Generation (all tiers)
+    if inputs.generates_synthetic_content:
+        triggered_rules.append(
+            "**Synthetic Content Generation:** Watermarking/provenance (C2PA), user disclosure per EU AI Act Art. 52, abuse monitoring required"
+        )
+    
+    # Rule 8: Missing ownership is handled by exporters.py with fallback values
+    # We don't check it here since owner/approver aren't part of RiskInputs
+    
+    return triggered_rules

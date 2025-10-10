@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import sys
 from pathlib import Path
 from typing import List
@@ -172,6 +173,13 @@ def main():
 
     st.title("Frontier AI Risk Assessment Framework")
     
+    # Disclaimer banner
+    st.info(
+        "Personal learning prototype to show how I structure AI governance decisions. "
+        "Not production software or legal advice. Please **do not paste sensitive data**.",
+        icon="ℹ️"
+    )
+    
     # Framing panel
     with st.expander("ℹ️ About This Tool — Read This First", expanded=False):
         st.markdown("""
@@ -323,11 +331,39 @@ def main():
         **The AI will analyze your description and suggest risk modifiers. You'll review its reasoning before accepting.**
         """)
     
+    # Sample scenario quick-load buttons
+    st.markdown("**⚡ Quick Demo:** Load a sample scenario to see how it works")
+    col1, col2, col3 = st.columns(3)
+    
+    sample_scenarios = {
+        "Healthcare Chatbot": "A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses their medical records to check medication history and insurance eligibility. Patients interact directly via web and mobile app. The system suggests appointment times but requires nurse approval for prescription refills.",
+        "Internal Code Copilot": "An internal code completion tool for our engineering team. It suggests code snippets based on our proprietary codebase. Engineers review all suggestions before committing. Only used by employees with existing code access. No customer data involved.",
+        "Automated Trading": "An automated trading system that buys and sells securities based on market signals. It executes trades autonomously up to $50K per trade without human review. Larger trades escalate to compliance. Processes real-time market data and client portfolio information."
+    }
+    
+    with col1:
+        if st.button("🏥 Healthcare Chatbot", use_container_width=True):
+            st.session_state.quick_desc = sample_scenarios["Healthcare Chatbot"]
+            st.rerun()
+    with col2:
+        if st.button("💻 Code Copilot", use_container_width=True):
+            st.session_state.quick_desc = sample_scenarios["Internal Code Copilot"]
+            st.rerun()
+    with col3:
+        if st.button("📈 Trading System", use_container_width=True):
+            st.session_state.quick_desc = sample_scenarios["Automated Trading"]
+            st.rerun()
+    
+    # Initialize session state for text area if not exists
+    if "quick_desc" not in st.session_state:
+        st.session_state.quick_desc = ""
+    
     quick_description = st.text_area(
         "📝 Describe your AI use case (see tips above for what to include)",
+        value=st.session_state.quick_desc,
         placeholder="Example: 'A chatbot that helps hospital patients schedule appointments and refill prescriptions. It accesses medical records, interacts directly with patients via web/mobile, and requires nurse approval for prescription changes.'",
         height=140,
-        key="quick_desc",
+        key="quick_desc_input",
         help="Include: what it does, who uses it, what data it processes, automation level, impact if it fails, and relevant context (healthcare/finance/children/etc.)"
     )
     
@@ -849,6 +885,7 @@ def main():
         controls=controls,
         owner=owner,
         approver=approver,
+        risk_inputs=risk_inputs,
     )
     
     # Generate Transparency Note (illustrative template)
@@ -886,8 +923,8 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown(f"**System Owner:** {owner if owner else 'Not specified'}")
-        st.markdown(f"**Approver:** {approver if approver else 'Not specified'}")
+        st.markdown(f"**System Owner:** {html.escape(owner) if owner else 'Not specified'}")
+        st.markdown(f"**Approver:** {html.escape(approver) if approver else 'Not specified'}")
         st.caption("These roles are responsible for implementing and monitoring safeguards")
     
     with col2:
@@ -1276,6 +1313,7 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
         controls=controls,
         owner="AI-Driven Assessment",
         approver="Pending Review",
+        risk_inputs=risk_inputs,
     )
     
     # Generate Transparency Note (illustrative template)
