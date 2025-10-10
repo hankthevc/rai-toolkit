@@ -191,6 +191,23 @@ def main():
         - **Map** scenarios to governance standards (NIST AI RMF, EU AI Act, OWASP, etc.)
         - **Generate** decision records for stakeholder review
         
+        ### Risk Level Definitions
+        
+        | Tier | Score Range | Characteristics | Governance Requirements |
+        |------|-------------|-----------------|-------------------------|
+        | 🟢 **Low** | 0-3 | Minimal data, human oversight, reversible decisions | Standard security practices |
+        | 🟡 **Medium** | 4-6 | Some PII/automation, customer-facing | Enhanced monitoring, documentation |
+        | 🟠 **High** | 7-9 | Sensitive data, consequential decisions | Executive review, compliance checks, audit trail |
+        | 🔴 **Critical** | 10+ | Healthcare/Finance + High stakes + Autonomy | Legal review, DPIA, red-team testing, board approval |
+        
+        **Examples:**
+        - **Low:** Internal analytics dashboard (aggregated data only)
+        - **Medium:** Customer support chatbot (suggests responses, human approves)
+        - **High:** Credit approval assistant (recommends decisions with oversight)
+        - **Critical:** Autonomous medical diagnosis system (PHI + life/safety impact)
+        
+        **Scoring:** Risk score is additive based on PII, customer-facing, high-stakes, autonomy level, sector (healthcare/finance/critical infrastructure), and modifiers (bio/cyber/children/disinformation).
+        
         ### What This Is NOT
         - ❌ **Not production software** — Intended for educational and demonstrative purposes only
         - ❌ **Not comprehensive** — A sample implementation, not an enterprise solution
@@ -522,7 +539,7 @@ def main():
             st.info("Please click the 'Analyze with AI' button again to re-run the analysis with the updated format.")
             # Don't continue executing this section
         else:
-            # Show AI's risk assessment prominently
+            # Show AI's risk assessment as Step 1
             risk_tier_colors = {
                 "Low": "🟢",
                 "Medium": "🟡", 
@@ -531,11 +548,20 @@ def main():
             }
             risk_icon = risk_tier_colors.get(analysis.estimated_risk_tier, "⚪")
             
-            st.markdown(f"### {risk_icon} AI Assessment: **{analysis.estimated_risk_tier} Risk**")
+            # Scroll to top to show the completed assessment
+            st.markdown('<script>window.scrollTo(0, 0);</script>', unsafe_allow_html=True)
+            
+            st.markdown("### 📊 Two-Step Risk Assessment")
+            st.markdown("---")
+            
+            # Step 1: AI Initial Screening
+            st.markdown(f"#### Step 1: AI Initial Screening")
+            st.markdown(f"### {risk_icon} Preliminary Assessment: **{analysis.estimated_risk_tier} Risk**")
+            st.caption("*Based on AI analysis of scenario description*")
             
             # Show reasoning
-            with st.expander("📋 AI's Reasoning & Analysis", expanded=True):
-                st.markdown(f"**Why this risk tier:**\n\n{analysis.reasoning}")
+            with st.expander("📋 View AI Analysis Details", expanded=True):
+                st.markdown(f"**Why this preliminary assessment:**\n\n{analysis.reasoning}")
                 
                 st.markdown("---")
                 
@@ -616,8 +642,9 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode
     
     controls = select_applicable_controls(packs, scenario_context)
     
-    # Generate unified governance assessment
-    st.subheader("📋 Governance Assessment")
+    # Step 2: Formal Risk Scoring
+    st.markdown("---")
+    st.markdown(f"#### Step 2: Formal Risk Scoring")
     
     # Build comprehensive prose assessment
     risk_tier_icons = {
@@ -628,19 +655,17 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode
     }
     risk_icon = risk_tier_icons.get(assessment.tier, "⚪")
     
-    # Start with risk tier
-    st.markdown(f"### {risk_icon} Risk Classification: **{assessment.tier}**")
+    # Show final classification
+    st.markdown(f"### {risk_icon} Final Classification: **{assessment.tier}** (Score: {assessment.score})")
+    st.caption("*Based on weighted scoring across 16 risk factors — use this for governance decisions*")
     
     # Build narrative assessment combining AI and traditional analysis
     assessment_narrative = []
     
-    # Include AI reasoning
-    if hasattr(ai_analysis, 'reasoning'):
-        assessment_narrative.append(f"**Analysis:** {ai_analysis.reasoning}")
-    
-    # Note if AI and traditional engine differ
+    # Note if AI and scored classification differ
     if hasattr(ai_analysis, 'estimated_risk_tier') and ai_analysis.estimated_risk_tier != assessment.tier:
-        assessment_narrative.append(f"\n*Note: Initial AI assessment suggested {ai_analysis.estimated_risk_tier} risk tier based on scenario description, while the formal scoring model yielded {assessment.tier} (score: {assessment.score}). This variance may indicate nuances worth reviewing with legal/compliance.*")
+        assessment_narrative.append(f"⚠️ **Variance Detected:** Initial AI screening suggested **{ai_analysis.estimated_risk_tier}** tier, but formal scoring yielded **{assessment.tier}** (score: {assessment.score} from {len(assessment.contributing_factors)} weighted factors).")
+        assessment_narrative.append(f"\n*This variance may indicate nuances worth reviewing with legal/compliance teams before finalizing the risk classification.*")
     
     # Contributing factors
     if assessment.contributing_factors:
