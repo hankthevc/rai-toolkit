@@ -236,7 +236,7 @@ def determine_risk_tier(score: int) -> str:
 
 def check_sensitive_use_gating(inputs: RiskInputs, assessment: RiskAssessment) -> Dict[str, any]:
     """
-    Illustrative RAIS-style sensitive use gating (A2: Sensitive or Restricted Use Triage).
+    Illustrative sensitive use gating heuristic (demonstrative triage logic).
     
     This is a demonstration of how to implement escalation gates for high-risk AI systems.
     Real implementations should be validated with legal, compliance, and executive leadership.

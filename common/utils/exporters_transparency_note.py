@@ -1,9 +1,8 @@
-"""Transparency Note stub generation (RAIS T2 artifact).
+"""Transparency Note stub generation (illustrative template).
 
 This module generates a structured Transparency Note template that teams can
-complete for stakeholder communication. Aligned with Microsoft RAIS T2 goal.
-
-See: https://www.microsoft.com/en-us/ai/responsible-ai-resources
+complete for stakeholder communication. This is an illustrative example for
+demonstration purposes only.
 """
 
 from __future__ import annotations
@@ -218,9 +217,7 @@ This system is subject to the following governance controls:
 
 ---
 
-*This Transparency Note was generated using the RAI Toolkit (https://github.com/hankthevc/rai-toolkit) and should be completed by the system owner with accurate, system-specific details. This is a template for demonstration purposes and should be reviewed by legal, privacy, and compliance teams before publication.*
-
-*Transparency Note guidance: https://www.microsoft.com/en-us/ai/responsible-ai-resources*
+*This Transparency Note was generated using the RAI Toolkit (https://github.com/hankthevc/rai-toolkit) and should be completed by the system owner with accurate, system-specific details. Illustrative, for demo purposes; not official guidance.*
 """
     
     return note
