@@ -359,8 +359,9 @@ def main():
                         conversation_history=st.session_state.interview_history,
                         api_key=api_key
                     )
-                    
+                    st.write(f"DEBUG - Interview response received: {interview_response is not None}")
                     if interview_response:
+                        st.write(f"DEBUG - Response has {len(interview_response.questions)} questions, ready_for_analysis: {interview_response.ready_for_analysis}")
                         if interview_response.ready_for_analysis:
                             # Enough context gathered, proceed to analysis
                             st.success("✅ Sufficient context gathered! Proceeding with comprehensive analysis...")
@@ -380,12 +381,13 @@ def main():
                             st.session_state.interview_mode = True
                             st.session_state.interview_questions = interview_response
                             st.rerun()
-            except ImportError:
-                st.error("⚠️ OpenAI package not installed. Run: `pip install openai`")
+            except ImportError as e:
+                st.error(f"⚠️ OpenAI package not installed: {str(e)}")
             except Exception as e:
                 st.error(f"❌ Analysis error: {str(e)}")
                 import traceback
                 st.code(traceback.format_exc())
+        st.write("DEBUG - Finished try/except block")
     
     # Display interview questions if in interview mode
     if st.session_state.interview_mode and st.session_state.interview_questions:
