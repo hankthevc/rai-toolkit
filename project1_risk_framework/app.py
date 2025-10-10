@@ -334,34 +334,26 @@ def main():
     # Single analyze button - automatically uses interview mode
     analyze_button = st.button("🔍 Analyze AI Use Case", use_container_width=True, type="primary", 
                                help="AI will ask clarifying questions for comprehensive risk assessment")
-
-    # DEBUG: Show button and text state
-    st.write(f"DEBUG - Button clicked: {analyze_button}, Text entered: {bool(quick_description)}, Text length: {len(quick_description) if quick_description else 0}")
     
     # Handle AI Analysis (automatically uses interview mode)
     if analyze_button and quick_description:
-        st.write("DEBUG - Entered analysis block")
         with st.spinner("Analyzing your description and preparing questions..."):
             try:
                 # Get API key from Streamlit Cloud secrets
                 api_key = None
                 try:
                     api_key = st.secrets.get("OPENAI_API_KEY")
-                    st.write(f"DEBUG - API key retrieved: {bool(api_key)}, Length: {len(api_key) if api_key else 0}")
                 except Exception as e:
                     st.error(f"⚠️ Error getting API key: {str(e)}")
                 
                 if api_key:
-                    st.write("DEBUG - About to call conduct_interview")
                     # Conduct initial interview
                     interview_response = conduct_interview(
                         initial_description=quick_description,
                         conversation_history=st.session_state.interview_history,
                         api_key=api_key
                     )
-                    st.write(f"DEBUG - Interview response received: {interview_response is not None}")
                     if interview_response:
-                        st.write(f"DEBUG - Response has {len(interview_response.questions)} questions, ready_for_analysis: {interview_response.ready_for_analysis}")
                         if interview_response.ready_for_analysis:
                             # Enough context gathered, proceed to analysis
                             st.success("✅ Sufficient context gathered! Proceeding with comprehensive analysis...")
@@ -387,7 +379,6 @@ def main():
                 st.error(f"❌ Analysis error: {str(e)}")
                 import traceback
                 st.code(traceback.format_exc())
-        st.write("DEBUG - Finished try/except block")
     
     # Display interview questions if in interview mode
     if st.session_state.interview_mode and st.session_state.interview_questions:
