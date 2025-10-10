@@ -507,8 +507,11 @@ def main():
             else:
                 st.warning("⚠️ Please answer all questions to continue the assessment.")
 
-    # Display governance assessment if AI analysis is complete
+    # Display AI analysis preview
     if st.session_state.show_ai_preview and st.session_state.ai_analysis:
+        # Show AI's full analytical reasoning
+        st.success("✅ AI Analysis Complete")
+        
         analysis = st.session_state.ai_analysis
         
         # Defensive check for backward compatibility with old session state
@@ -517,15 +520,66 @@ def main():
             st.session_state.show_ai_preview = False
             st.session_state.ai_analysis = None
             st.info("Please click the 'Analyze with AI' button again to re-run the analysis with the updated format.")
+            # Don't continue executing this section
         else:
-            st.success("✅ AI Analysis Complete")
+            # Show AI's risk assessment prominently
+            risk_tier_colors = {
+                "Low": "🟢",
+                "Medium": "🟡", 
+                "High": "🟠",
+                "Critical": "🔴"
+            }
+            risk_icon = risk_tier_colors.get(analysis.estimated_risk_tier, "⚪")
             
-            # Scroll to top to show the completed assessment
-            st.markdown('<script>window.scrollTo(0, 0);</script>', unsafe_allow_html=True)
+            st.markdown(f"### {risk_icon} AI Assessment: **{analysis.estimated_risk_tier} Risk**")
             
+            # Show reasoning
+            with st.expander("📋 AI's Reasoning & Analysis", expanded=True):
+                st.markdown(f"**Why this risk tier:**\n\n{analysis.reasoning}")
+                
+                st.markdown("---")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**🎯 Key Risk Factors:**")
+                    for factor in analysis.key_risk_factors:
+                        st.markdown(f"- {factor}")
+                
+                with col2:
+                    st.markdown("**📚 Framework Alignment:**")
+                    st.markdown(analysis.framework_alignment)
+            
+            # Show recommended safeguards
+            with st.expander("🛡️ AI-Recommended Safeguards", expanded=True):
+                st.markdown("Based on the scenario analysis, these governance controls should apply:")
+                for i, safeguard in enumerate(analysis.recommended_safeguards, 1):
+                    st.markdown(f"{i}. {safeguard}")
+                st.caption("*Note: The traditional risk engine below will also apply safeguards based on policy packs. Compare both sets of recommendations.*")
+            
+            # Show form values
+            with st.expander("📝 Form Auto-Fill Values", expanded=False):
+                autonomy_labels = {
+                    0: "Suggestion only",
+                    1: "Human-in-the-loop",
+                    2: "Human oversight",
+                    3: "Full autonomy"
+                }
+                st.markdown(f"""
+                These values will auto-fill the form below:
+                
+                - **PII/Sensitive Data:** {"Yes" if analysis.contains_pii else "No"}
+                - **Customer-Facing:** {"Yes" if analysis.customer_facing else "No"}
+                - **High-Stakes:** {"Yes" if analysis.high_stakes else "No"}
+                - **Autonomy Level:** {analysis.autonomy_level} ({autonomy_labels.get(analysis.autonomy_level, "Unknown")})
+                - **Sector:** {analysis.sector}
+                - **Modifiers:** {", ".join(analysis.modifiers) if analysis.modifiers else "None"}
+                
+                *Scroll down to review the form. You can override any suggested values.*
+                """)
+            
+            # Automatically trigger risk assessment from AI analysis
             st.markdown("---")
-            
-            # Display unified governance assessment (removes confusing dual risk tiers)
             _render_risk_assessment_from_ai(st.session_state.ai_analysis, quick_description, packs, demo_mode)
             return
 
@@ -575,18 +629,18 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs, demo_mode
     risk_icon = risk_tier_icons.get(assessment.tier, "⚪")
     
     # Start with risk tier
-    st.markdown(f"### {risk_icon} Risk Classification: **{assessment.tier}** (Score: {assessment.score})")
+    st.markdown(f"### {risk_icon} Risk Classification: **{assessment.tier}**")
     
     # Build narrative assessment combining AI and traditional analysis
     assessment_narrative = []
     
-    # Lead with "Why this classification" using AI reasoning
+    # Include AI reasoning
     if hasattr(ai_analysis, 'reasoning'):
-        assessment_narrative.append(f"**Why this classification:**\n\n{ai_analysis.reasoning}")
+        assessment_narrative.append(f"**Analysis:** {ai_analysis.reasoning}")
     
-    # Note if AI and traditional engine differ (show only if different)
+    # Note if AI and traditional engine differ
     if hasattr(ai_analysis, 'estimated_risk_tier') and ai_analysis.estimated_risk_tier != assessment.tier:
-        assessment_narrative.append(f"\n> ℹ️ **Note:** Initial AI screening suggested {ai_analysis.estimated_risk_tier} tier. The formal scoring model yielded {assessment.tier} based on {len(assessment.contributing_factors)} weighted factors. This variance may indicate nuances worth reviewing with legal/compliance.")
+        assessment_narrative.append(f"\n*Note: Initial AI assessment suggested {ai_analysis.estimated_risk_tier} risk tier based on scenario description, while the formal scoring model yielded {assessment.tier} (score: {assessment.score}). This variance may indicate nuances worth reviewing with legal/compliance.*")
     
     # Contributing factors
     if assessment.contributing_factors:
