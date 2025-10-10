@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this toolkit in your work, please cite it as below."
 title: "RAI Toolkit: Responsible AI Governance-as-Code"
-abstract: "A demonstration framework for AI risk assessment, policy-backed safeguards, and exportable decision records. Translates NIST AI RMF, EU AI Act, ISO/IEC 42001, OWASP LLM Top 10, MITRE ATLAS, and U.S. federal AI policy into executable Python. Includes Microsoft RAIS alignment, transparency note generation, and AI-powered scenario parsing."
+abstract: "A personal learning prototype for AI risk assessment, policy-backed safeguards, and exportable decision records. Translates NIST AI RMF, EU AI Act, ISO/IEC 42001, OWASP LLM Top 10, MITRE ATLAS, and U.S. federal AI policy into executable Python. Includes transparency note generation and AI-powered scenario parsing."
 authors:
   - family-names: "Appel"
     given-names: "Henry"
@@ -21,7 +21,6 @@ keywords:
   - iso-42001
   - owasp-llm-top-10
   - mitre-atlas
-  - microsoft-rais
   - governance-as-code
   - ai-policy
   - streamlit
@@ -57,11 +56,6 @@ references:
     authors:
       - name: "MITRE Corporation"
     url: "https://atlas.mitre.org/"
-  - type: policy
-    title: "Microsoft Responsible AI Standard (RAIS)"
-    authors:
-      - name: "Microsoft Corporation"
-    url: "https://www.microsoft.com/en-us/ai/responsible-ai"
   - type: policy
     title: "OMB M-25-21: Advancing the Responsible Acquisition, Development, and Use of Artificial Intelligence"
     authors:

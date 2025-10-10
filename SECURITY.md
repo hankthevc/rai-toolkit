@@ -2,23 +2,22 @@
 
 ## Key Judgments
 - This toolkit prioritizes defensive, governance-focused analysis. It does not expose or encourage offensive techniques.
+- **This is a learning prototype.** It is not intended for processing actual sensitive data or production use.
 - Security vulnerabilities should be reported privately so fixes can be prepared before public disclosure.
-- **This is a demonstration tool.** It is not intended for processing actual sensitive data or production use without validation by legal, privacy, and security teams.
 
 ## Data Handling & Privacy
 
-**No sensitive data collection:** This application does not collect, store, or log assessment text or user inputs. All assessment data exists only in browser memory during your session.
+**No sensitive data collection:** The live demo runs as a server-side Streamlit session. Assessment data exists only for the session and is not persisted to a database.
 
 **AI analysis data flow:**
-- When using AI-powered analysis, scenario descriptions are sent to OpenAI API (or Azure OpenAI if configured)
-- No assessment data is persisted to a database by this application
-- Risk calculations and policy matching happen locally in your browser
+- When using AI-powered analysis, scenario descriptions are sent to OpenAI API
+- Risk calculations happen server-side during your session
+- Nothing is permanently stored
 
-**For production deployments:**
-- Use Azure OpenAI for data residency and compliance guarantees
-- Run locally (no external API calls except when AI analysis is used)
-- For air-gapped environments: disable AI analysis and use manual form input only
-- Validate with legal, privacy, and security teams before processing actual sensitive data
+**For local deployments:**
+- Run locally to control data flow entirely
+- Review OpenAI's terms of service before sending any data to their API
+- Do not process actual sensitive or production data with this prototype
 
 ## Support Window
 
@@ -33,7 +32,10 @@
 - This is a demonstration project; enterprise support is not provided
 
 ## Reporting a Vulnerability
-Email security issues to <hankthevc@users.noreply.github.com> with the subject line `RAI-Toolkit Vulnerability Report`.
+
+**For non-sensitive bugs:** Open a GitHub Issue with reproduction steps.
+
+**For potential security vulnerabilities:** Email <security@users.noreply.github.com> with the subject line `RAI-Toolkit Vulnerability Report`.
 
 Please include:
 - Description of the issue and potential impact

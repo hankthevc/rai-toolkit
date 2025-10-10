@@ -250,9 +250,7 @@ July 5, 2025 - Recommend annual for High/Critical tier (6-month review for first
 
 ---
 
-*This Transparency Note was generated using the RAI Toolkit (https://github.com/hankthevc/rai-toolkit) and completed by the HealthAssist governance team. This document aligns with Microsoft RAIS T2 (Transparency and Communication to Stakeholders) requirements and has been reviewed by legal, privacy, clinical quality, and information security teams.*
-
-*Transparency Note guidance: https://www.microsoft.com/en-us/ai/responsible-ai-resources*
+*This Transparency Note was generated using the RAI Toolkit (https://github.com/hankthevc/rai-toolkit) and completed by the HealthAssist governance team. Illustrative, for demo purposes; not official guidance. Review with legal, privacy, and security teams before use.*
 
 *Last Updated: January 10, 2025 | Version 1.0*
 
