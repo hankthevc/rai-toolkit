@@ -340,16 +340,19 @@ def main():
     
     # Handle AI Analysis (automatically uses interview mode)
     if analyze_button and quick_description:
+        st.write("DEBUG - Entered analysis block")
         with st.spinner("Analyzing your description and preparing questions..."):
             try:
                 # Get API key from Streamlit Cloud secrets
                 api_key = None
                 try:
                     api_key = st.secrets.get("OPENAI_API_KEY")
-                except:
-                    st.error("⚠️ OpenAI API key not configured. Please contact the administrator.")
+                    st.write(f"DEBUG - API key retrieved: {bool(api_key)}, Length: {len(api_key) if api_key else 0}")
+                except Exception as e:
+                    st.error(f"⚠️ Error getting API key: {str(e)}")
                 
                 if api_key:
+                    st.write("DEBUG - About to call conduct_interview")
                     # Conduct initial interview
                     interview_response = conduct_interview(
                         initial_description=quick_description,
