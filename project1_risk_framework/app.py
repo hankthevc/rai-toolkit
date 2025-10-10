@@ -1566,45 +1566,6 @@ def _render_risk_assessment_from_ai(ai_analysis, use_case: str, packs):
                     st.session_state.show_refinement_box = False
                     st.rerun()
     
-    # Governance Summary & Additional Context
-    st.markdown("---")
-    st.subheader("📝 Governance Summary & Additional Context")
-    
-    # Sector-specific considerations
-    sector_guidance = {
-        "Healthcare": """
-        **Healthcare-Specific Governance Considerations:**
-        - HIPAA compliance required for PHI processing
-        - FDA oversight if clinical decision support
-        - Joint Commission accreditation requirements
-        - State medical board regulations may apply
-        """,
-        "Finance": """
-        **Financial Services Governance Considerations:**
-        - Model Risk Management (SR 11-7) if credit/capital
-        - Fair lending laws (ECOA, Fair Housing Act)
-        - SEC/FINRA rules if investment advice
-        - AML/KYC monitoring requirements
-        """,
-        "Children": """
-        **Children-Specific Governance Considerations:**
-        - COPPA compliance (parental consent under 13)
-        - EU AI Act prohibits certain manipulative uses
-        - Age-appropriate design code requirements
-        - Heightened duty of care for vulnerable users
-        """,
-        "Critical Infrastructure": """
-        **Critical Infrastructure Governance Considerations:**
-        - CISA reporting requirements for incidents
-        - Sector-specific regulations (NERC CIP for energy, TSA for transport)
-        - National security implications
-        - Resilience and continuity planning
-        """
-    }
-    
-    if risk_inputs.sector in sector_guidance:
-        st.info(sector_guidance[risk_inputs.sector])
-    
     st.markdown("---")
     _render_about_section()
 
