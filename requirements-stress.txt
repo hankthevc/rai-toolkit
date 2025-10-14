@@ -1,0 +1,11 @@
+# Stress Testing Dependencies for RAI Toolkit
+# Install with: pip install -r requirements-stress.txt
+
+playwright==1.47.0
+pytest==8.3.3
+pytest-playwright==0.5.1
+pytest-asyncio==0.24.0
+pillow==10.4.0
+jinja2==3.1.4
+psutil==6.1.0  # For process management and memory monitoring
+

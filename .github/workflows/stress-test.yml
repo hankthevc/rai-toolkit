@@ -1,0 +1,84 @@
+name: Stress Test (On-Demand)
+
+on:
+  workflow_dispatch:  # Manual trigger via GitHub Actions UI
+    inputs:
+      browser:
+        description: 'Browser to use for testing'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM UTC (optional)
+
+jobs:
+  stress-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-stress.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install --with-deps ${{ inputs.browser || 'chromium' }}
+      
+      - name: Run stress tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          chmod +x scripts/run_stress_test.sh
+          ./scripts/run_stress_test.sh
+      
+      - name: Upload test report
+        if: always()  # Upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: stress-test-report-${{ github.run_number }}
+          path: stress_test_reports/
+          retention-days: 30
+      
+      - name: Comment PR (if applicable)
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportDir = 'stress_test_reports';
+            const reports = fs.readdirSync(reportDir).filter(f => f.endsWith('.html'));
+            
+            if (reports.length > 0) {
+              const latestReport = reports.sort().reverse()[0];
+              const comment = `## 🧪 Stress Test Report
+              
+Stress test suite has been executed. Download the full report from the artifacts section.
+
+**Report**: \`${latestReport}\`
+              
+To view locally: Download the artifact and open the HTML file in your browser.`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+

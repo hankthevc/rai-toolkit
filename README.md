@@ -243,6 +243,23 @@ pytest tests/ --cov=common            # With coverage
 pytest tests/ -k "not integration"    # Skip API-requiring tests
 ```
 
+### Stress Testing (Hiring Manager Perspective)
+
+**Comprehensive UI/UX evaluation:** Run Playwright-based stress tests that evaluate the app from a senior governance professional's perspective:
+
+```bash
+./scripts/run_stress_test.sh
+```
+
+This generates an HTML report with:
+- Functional correctness (edge cases, API failures, state management)
+- UX quality (navigation, error messages, accessibility)
+- Performance metrics (load times, responsiveness)
+- Governance rigor (framework citations, risk transparency)
+- Professional polish (typos, UI consistency, exports)
+
+See [`docs/STRESS_TESTING.md`](docs/STRESS_TESTING.md) for details.
+
 ---
 
 ## Data Handling

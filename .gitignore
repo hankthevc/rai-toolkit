@@ -13,5 +13,9 @@ __pycache__/
 # Generated data
 data/
 
+# Stress test artifacts
+stress_test_reports/
+streamlit.log
+
 # MacOS
 .DS_Store
